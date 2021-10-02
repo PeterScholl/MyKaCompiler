@@ -25,9 +25,7 @@ public class View implements MouseListener, KeyListener {
 	private Controller controller = null;
 	private Font generalfont = new Font("Dialog", Font.BOLD, 16);
 	private boolean debug=true;
-	private final static String infotext = "Tool zum einfachen Erstellen von moodle-Tests\nVersion 0.2 von Peter Scholl\npeter.scholl@aeg-online.de\n"
-			+ "\nHinweis: bei der Datensatz-Verwendung werden die Felder durch #1,#2,... angegeben, dabei steht #1 für "
-			+ "den Wert in der ersten Spalte.";
+	private final static String infotext = "Vorlage zum Erstellen eines Lexers und Parsers";
 
 	/**
 	 * Constructor for objects of class GUI
@@ -61,7 +59,7 @@ public class View implements MouseListener, KeyListener {
 		JMenuItem srcSpeichernEintrag = new JMenuItem("Source-Datei speichern");
 		srcSpeichernEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				controller.execute(Controller.SRC_speichern, null);
+				//controller.execute(Controller.SRC_speichern, null);
 			}
 		});
 		dateimenue.add(srcSpeichernEintrag);
@@ -267,7 +265,7 @@ public class View implements MouseListener, KeyListener {
 			@SuppressWarnings("unchecked")
 			JList<String> theList = (JList<String>) e.getSource();
 			int index = theList.locationToIndex(e.getPoint());
-			controller.execute(Controller.Question_anzeigen, new String[] { "" + index });
+			//controller.execute(Controller.Question_anzeigen, new String[] { "" + index });
 			if (index >= 0) {
 				Object o = theList.getModel().getElementAt(index);
 				System.out.println("Double-clicked on: " + o.toString());
@@ -340,7 +338,7 @@ public class View implements MouseListener, KeyListener {
 					String[] args = new String[fragenliste.getSelectedIndices().length];
 					for (int i = 0; i < args.length; i++)
 						args[i] = "" + fragenliste.getSelectedIndices()[i];
-					controller.execute(Controller.Delete_Questions, args);
+					//controller.execute(Controller.Delete_Questions, args);
 				} else {
 					this.setStatusLine("Löschen abgebrochen");
 				}
@@ -356,7 +354,7 @@ public class View implements MouseListener, KeyListener {
 		questionToXMLEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
 				int index = fragenliste.locationToIndex(e.getPoint());				
-				controller.execute(Controller.QuestionToXML, new String[] {""+index});
+				//controller.execute(Controller.QuestionToXML, new String[] {""+index});
 			}
 		});
 		menu.add(questionToXMLEintrag);
@@ -364,7 +362,7 @@ public class View implements MouseListener, KeyListener {
 		JMenuItem quizToXMLEintrag = new JMenuItem("Quiz nach XML");
 		quizToXMLEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
-				controller.execute(Controller.QuizToXML, null);
+				//controller.execute(Controller.QuizToXML, null);
 			}
 		});
 		menu.add(quizToXMLEintrag);
