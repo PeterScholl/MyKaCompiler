@@ -3,6 +3,7 @@ package myka;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
 /**
@@ -11,7 +12,7 @@ import java.util.Arrays;
  * @author scholl@unterrichtsportal.org
  * @version 16.05.2016
  */
-public class View implements MouseListener, KeyListener {
+public class MyKaView implements MouseListener, KeyListener {
 	//public static final int PANEL_XMLtemplate = 2;
 	//public static final int PANEL_Questions = 1;
 	//public static final int PANEL_Database = 3;
@@ -30,7 +31,7 @@ public class View implements MouseListener, KeyListener {
 	/**
 	 * Constructor for objects of class GUI
 	 */
-	public View(Controller c, String title) {
+	public MyKaView(Controller c, String title) {
 		this.controller = c;
 		fensterErzeugen(title);
 	}
@@ -257,6 +258,23 @@ public class View implements MouseListener, KeyListener {
 					increaseFontSizeRek((Container) c, inc);
 			}
 		}
+	}
+
+	public BufferedImage getBufferedImage() {
+		BufferedImage img = null;
+		// center.getBufferedImage().getGraphics().setFont(generalfont);
+		/*
+		BufferedImage img = center.getBufferedImage();
+		Graphics g = img.getGraphics();
+		g.setColor(Color.white);
+		g.fillRect(0, 0, img.getWidth(), img.getHeight());
+		if (bgImage != null) {
+			debug("Background-Image erstellen - Kartenhoehe" + bgImage.getHeight(center) + " weite:"
+					+ bgImage.getWidth(center));
+			g.drawImage(bgImage, 10, 10, img.getWidth() - 20, img.getHeight() - 20, center);
+		}
+		*/
+		return img;
 	}
 
 	@Override
