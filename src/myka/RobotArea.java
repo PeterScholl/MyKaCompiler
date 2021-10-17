@@ -6,6 +6,10 @@ package myka;
  * @author peter
  *
  */
+/**
+ * @author peter
+ *
+ */
 public class RobotArea {
 	public static final int DIR_NORTH = 0;
 	public static final int DIR_SOUTH = 2;
@@ -18,10 +22,13 @@ public class RobotArea {
 	public static final int RET_OutOfBounds = -4; //Zugriff ausserhalb der Genzen
 	public static final int RET_MaxReached = -5; //Maximum an Ziegeln erreicht
 	public static final int RET_MinReached = -6; //Maximum an Ziegeln erreicht
+	public static final int RET_AlreadyMarked = -7; //Marke breits gesetzt
+	public static final int RET_AlreadyUnmarked = -8; //Marke war nicht gesetzt
 	private int width,length,height;
 	private int rob_x,rob_y;
 	private int dir;
 	private int[][] ziegel; //Wie viele Ziegel liegen an welcher Position [width][length]
+	private boolean[][] marked; // Marke setzen
 	
 
 	/**
@@ -48,6 +55,13 @@ public class RobotArea {
 		this.rob_x = rob_x;
 		this.rob_y = rob_y;
 		this.ziegel = new int[width][length];
+		this.marked = new boolean[width][length];
+		for (int i = 0; i<width; i++) {
+			for (int j=0; j<length; j++) {
+				ziegel[i][j]=0;
+				marked[i][j]=false;
+			}
+		}
 		this.dir=DIR_SOUTH;
 	}
 
@@ -115,7 +129,26 @@ public class RobotArea {
 		ziegel[x][y]--;
 		return RET_SUCCESS;		
 	}
+
+	public int setMark(int x, int y) {
+		if (!isInside(x, y)) return RET_OutOfBounds;
+		if (marked[x][y]) return RET_AlreadyMarked;
+		marked[x][y]=true;
+		return RET_SUCCESS;		
+	}
+
+	public int removeMark(int x, int y) {
+		if (!isInside(x, y)) return RET_OutOfBounds;
+		if (!marked[x][y]) return RET_AlreadyUnmarked;
+		marked[x][y]=false;
+		return RET_SUCCESS;		
+	}
 	
+	public boolean getMark(int x, int y) {
+		if (!isInside(x, y)) return false;
+		return marked[x][y];
+	}
+
 	public int[] getRobotPos() {
 		return new int[] {rob_x, rob_y};
 	}
@@ -145,8 +178,11 @@ public class RobotArea {
 	}
 	
 	public int forward() {
-		//TODO: Auf Hoehenunterschied pruefen
 		int[] n = nextFeld();
+		if (!isInside(n[0], n[1])) return RET_BORDER;
+		//Auf Hoehenunterschied pruefen
+		int diff = getZiegelCount(rob_x, rob_y)-getZiegelCount(n[0], n[1]);
+		if (diff<-1 || diff > 1) return RET_ToHIGH;
 		return setRobotPos(n[0], n[1]);
 	}
 	
@@ -169,6 +205,33 @@ public class RobotArea {
 		if (!isInside(n[0],n[1])) return RET_OutOfBounds;
 		return takeZiegel(n[0], n[1]);		
 	}
+	
+	/**
+	 * Markiere das Feld auf dem der Roboter steht
+	 * @return SUCCESS oder Fehler
+	 */
+	public int mark() {
+		return setMark(rob_x, rob_y);
+	}
+	
+	/**
+	 * Entferne Markierung von dem Feld auf dem der Roboter steht
+	 * @return SUCCESS oder Fehler
+	 */
+	public int unmark() {
+		return removeMark(rob_x, rob_y);
+	}
+	
+	/**
+	 * Ist das Feld markiert, auf dem der Roboter steht
+	 * @return true or false
+	 */
+	public boolean ismarked() {
+		return getMark(rob_x, rob_y);
+	}
+	
+	
+	
 	
 	//*** ENDE Befehle an den Roboter **************************
 

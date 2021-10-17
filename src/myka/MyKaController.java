@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Polygon;
 import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
@@ -62,7 +63,6 @@ public class MyKaController {
 		imgRobs[RobotArea.DIR_EAST] = kit.getImage(aktfile.getAbsolutePath()); 
 		aktfile = new File("./bilder/robotS.png");
 		imgRobs[RobotArea.DIR_SOUTH] = kit.getImage(aktfile.getAbsolutePath()); 
-		//for (int i=0; i<4; i++) kit.prepareImage(imgRobs[i], -1, -1, imgobs);
 		//TODO: Bessere Lösung finden als diesen Kniff!!
 		for (int i=0;i<4;i++) {
 			robotArea.turnLeft();
@@ -72,6 +72,7 @@ public class MyKaController {
 		robotArea.ablegen();
 		robotZeichnen();
 		robotArea.aufnehmen();
+		robotArea.setMark(1, 1);
 		robotZeichnen();
 	}
 
@@ -159,6 +160,16 @@ public class MyKaController {
 					g.drawImage(imgZiegel, ursprung_x+j*30-15-i*15,ursprung_y+i*15-15-akt_h,null);
 					akt_h+=15;
 					anz_z--;
+				}
+				if (robotArea.getMark(j, i)) {
+					//gelbe Markierung zeichnen
+					Polygon p = new Polygon();
+					p.addPoint(ursprung_x+j*30-i*15,ursprung_y+i*15-akt_h);
+					p.addPoint(ursprung_x+j*30+30-i*15,ursprung_y+i*15-akt_h);
+					p.addPoint(ursprung_x+j*30+15-i*15,ursprung_y+i*15+15-akt_h);
+					p.addPoint(ursprung_x+j*30-15-i*15,ursprung_y+i*15+15-akt_h);
+					g.setColor(Color.yellow);
+					g.fillPolygon(p);
 				}
 				if (r_pos[0]==j && r_pos[1]==i) { // Roboter zeichnen
 					debug("Roboter bei "+j+"-"+i);
