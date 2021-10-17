@@ -34,6 +34,7 @@ public class MyKaController {
 		MyKaController c = new MyKaController();
 		MyKaView v = new MyKaView(c, "Parser und Lexer nach MyKa (inf-schule.de) V 0.1");
 		c.view = v;
+		c.init();
 		c.robotZeichnen();
 	}
 
@@ -41,12 +42,15 @@ public class MyKaController {
 	 * 
 	 */
 	public MyKaController() {
+	}
+	
+	public void init() {
 		Toolkit kit = Toolkit.getDefaultToolkit();
 		File aktfile = new File("./bilder/Ziegel.png");
 		//file_ziegel = chooseFile(true);
 		if (aktfile.exists()) {
 			imgZiegel = kit.getImage(aktfile.getAbsolutePath());
-			System.out.println("Bild hoehe:"+imgZiegel.getHeight(imgobs));
+			//System.out.println("Bild hoehe:"+imgZiegel.getHeight(imgobs));
 		} else {
 			System.out.println("File does not exist");
 		}
@@ -58,6 +62,17 @@ public class MyKaController {
 		imgRobs[RobotArea.DIR_EAST] = kit.getImage(aktfile.getAbsolutePath()); 
 		aktfile = new File("./bilder/robotS.png");
 		imgRobs[RobotArea.DIR_SOUTH] = kit.getImage(aktfile.getAbsolutePath()); 
+		//for (int i=0; i<4; i++) kit.prepareImage(imgRobs[i], -1, -1, imgobs);
+		//TODO: Bessere Lösung finden als diesen Kniff!!
+		for (int i=0;i<4;i++) {
+			robotArea.turnLeft();
+			robotZeichnen();
+			debug(""+robotArea);
+		}
+		robotArea.ablegen();
+		robotZeichnen();
+		robotArea.aufnehmen();
+		robotZeichnen();
 	}
 
 	public void execute(int command, String[] args) {
@@ -77,17 +92,18 @@ public class MyKaController {
 
 	public void updateView() {
 		//TODO: Ansicht auffrischen - was muss gemacht werden?
+		view.updateCanvas();
 	}
 
 	public void writeStatus(String text) {
 		view.setStatusLine(text);
 	}
 	
-	public void robotZeichnen() {
+	public boolean robotZeichnen() {
 		// hier soll die aktuelle Situation der RobotArea gezeichnet werden
 		if (view == null) {
 			System.err.println("Kein Canvas zum Zeichnen!");
-			return;
+			return false;
 		}
 		BufferedImage img = view.getBufferedImage();
 
@@ -146,12 +162,15 @@ public class MyKaController {
 				}
 				if (r_pos[0]==j && r_pos[1]==i) { // Roboter zeichnen
 					debug("Roboter bei "+j+"-"+i);
-					g.drawImage(imgRobs[robotArea.getDir()], ursprung_x+j*30-15-i*15,ursprung_y+i*15-15-akt_h-45,null);
+					g.drawImage(imgRobs[robotArea.getDir()], ursprung_x+j*30-15-i*15,ursprung_y+i*15-15-akt_h-45,view.robotCanvas);
 				}
 			}
 		}
+		g.setColor(Color.black);
+		g.drawLine(1,0,	1,imageheight); //Rechte begrenzungslinie zur TextArea
 		
 		view.updateCanvas();
+		return true;
 	}
 	
 	

@@ -21,7 +21,7 @@ public class MyKaView implements MouseListener, KeyListener {
 	private JFrame fenster;
 	private JPanel center;
 	private JTextArea textareaSRC;
-	private RobotCanvas robotCanvas;
+	public RobotCanvas robotCanvas;
 	private JLabel upperLabel, statusLabel;
 	private JList<String> fragenliste = new JList<String>(new String[] {});
 	private MyKaController controller = null;
