@@ -1,7 +1,5 @@
 package myka;
 
-import java.util.Arrays;
-
 /**
  * Objects of this class describe the environment in which the
  * robot moves
@@ -9,17 +7,17 @@ import java.util.Arrays;
  *
  */
 public class RobotArea {
-	private static final int DIR_NORTH = 0;
-	private static final int DIR_SOUTH = 2;
-	private static final int DIR_EAST = 1;
-	private static final int DIR_WEST = 3;
-	private static final int RET_SUCCESS = 0; //Erfolg
-	private static final int RET_ERROR = -1; //allgemeiner Fehler
-	private static final int RET_ToHIGH = -2; //Kann Hoehe nicht ueberwinden
-	private static final int RET_BORDER = -3; //Rand erreicht
-	private static final int RET_OutOfBounds = -4; //Zugriff ausserhalb der Genzen
-	private static final int RET_MaxReached = -5; //Maximum an Ziegeln erreicht
-	private static final int RET_MinReached = -6; //Maximum an Ziegeln erreicht
+	public static final int DIR_NORTH = 0;
+	public static final int DIR_SOUTH = 2;
+	public static final int DIR_EAST = 1;
+	public static final int DIR_WEST = 3;
+	public static final int RET_SUCCESS = 0; //Erfolg
+	public static final int RET_ERROR = -1; //allgemeiner Fehler
+	public static final int RET_ToHIGH = -2; //Kann Hoehe nicht ueberwinden
+	public static final int RET_BORDER = -3; //Rand erreicht
+	public static final int RET_OutOfBounds = -4; //Zugriff ausserhalb der Genzen
+	public static final int RET_MaxReached = -5; //Maximum an Ziegeln erreicht
+	public static final int RET_MinReached = -6; //Maximum an Ziegeln erreicht
 	private int width,length,height;
 	private int rob_x,rob_y;
 	private int dir;
@@ -49,7 +47,7 @@ public class RobotArea {
 		this.height = height;
 		this.rob_x = rob_x;
 		this.rob_y = rob_y;
-		this.ziegel = new int[width][height];
+		this.ziegel = new int[width][length];
 		this.dir=DIR_SOUTH;
 	}
 
@@ -148,18 +146,8 @@ public class RobotArea {
 	
 	public int forward() {
 		//TODO: Auf Hoehenunterschied pruefen
-		switch(dir) {
-		case DIR_NORTH:
-			return setRobotPos(rob_x-1, rob_y);
-		case DIR_SOUTH:
-			return setRobotPos(rob_x+1, rob_y);
-		case DIR_EAST:
-			return setRobotPos(rob_x, rob_y+1);
-		case DIR_WEST:
-			return setRobotPos(rob_x, rob_y-1);
-		default:
-			return RET_ERROR;
-		}
+		int[] n = nextFeld();
+		return setRobotPos(n[0], n[1]);
 	}
 	
 	/**
@@ -205,13 +193,13 @@ public class RobotArea {
 	private int[] nextFeld() {
 		switch(dir) {
 		case DIR_NORTH:
-			return new int[] {rob_x-1, rob_y};
-		case DIR_SOUTH:
-			return new int[] {rob_x+1, rob_y};
-		case DIR_EAST:
-			return new int[] {rob_x, rob_y+1};
-		case DIR_WEST:
 			return new int[] {rob_x, rob_y-1};
+		case DIR_SOUTH:
+			return new int[] {rob_x, rob_y+1};
+		case DIR_EAST:
+			return new int[] {rob_x+1, rob_y};
+		case DIR_WEST:
+			return new int[] {rob_x-1, rob_y};
 		default:
 			return new int[] {-1, -1};
 		}
@@ -229,8 +217,15 @@ public class RobotArea {
 
 	@Override
 	public String toString() {
-		return "RobotArea [width=" + width + ", length=" + length + ", height=" + height + ", rob_x=" + rob_x
-				+ ", rob_y=" + rob_y + ", dir=" + dir + ", ziegel=" + Arrays.toString(ziegel) + "]";
+		String out =  "RobotArea [width=" + width + ", length=" + length + ", height=" + height + ", rob_x=" + rob_x
+				+ ", rob_y=" + rob_y + ", dir=" + dir + "]\n";
+		for (int i=0; i<ziegel.length; i++) {
+			for (int j=0; j<ziegel[0].length; j++) {
+				out+=""+ziegel[i][j]+" ";
+			}
+			out+="\n";
+		}
+		return out;
 	}
 	
 

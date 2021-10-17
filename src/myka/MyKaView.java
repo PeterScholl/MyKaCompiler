@@ -100,6 +100,57 @@ public class MyKaView implements MouseListener, KeyListener {
 		});
 		compmenue.add(interpreterEintrag);
 
+		JMenu robotermenue = new JMenu("Roboter"); // Zugriff auf den Roboter-Menue
+		menuezeile.add(robotermenue);
+		JMenuItem gehe = new JMenuItem("Schritt");
+		gehe.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				controller.getRobotArea().forward();
+				controller.robotZeichnen();
+			}
+		});
+		robotermenue.add(gehe);
+		JMenuItem turnLeft = new JMenuItem("linksDrehen");
+		turnLeft.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				controller.getRobotArea().turnLeft();
+				controller.robotZeichnen();
+			}
+		});
+		robotermenue.add(turnLeft);
+		JMenuItem turnRight = new JMenuItem("rechtsDrehen");
+		turnRight.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				controller.getRobotArea().turnRight();
+				controller.robotZeichnen();
+			}
+		});
+		robotermenue.add(turnRight);
+		JMenuItem ablegen = new JMenuItem("ablegen");
+		ablegen.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				controller.getRobotArea().ablegen();
+				controller.robotZeichnen();
+			}
+		});
+		robotermenue.add(ablegen);
+		JMenuItem aufheben = new JMenuItem("aufheben");
+		aufheben.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				controller.getRobotArea().aufnehmen();
+				controller.robotZeichnen();
+			}
+		});
+		robotermenue.add(aufheben);
+		JMenuItem info = new JMenuItem("aktueller Status");
+		info.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("Roboter-Status:\n"+controller.getRobotArea());
+			}
+		});
+		robotermenue.add(info);
+		
+		
 		JMenu einstellungmenue = new JMenu("Einstellungen"); // Einstellungen-Menue
 		menuezeile.add(einstellungmenue);
 		JMenuItem feldGroesseEintrag = new JMenuItem("Spielfeldgröße");
@@ -184,6 +235,15 @@ public class MyKaView implements MouseListener, KeyListener {
 		center.add(textareaSRC);
 		// Canvas für den Roboter
 		robotCanvas = new RobotCanvas(controller);
+		robotCanvas.addMouseListener(this);
+		//robotCanvas.addMouseMotionListener(this);
+		robotCanvas.addComponentListener(new ComponentAdapter() {
+			public void componentResized(ComponentEvent componentEvent) {
+				debug("Resized" + center.getWidth() + "-" + center.getHeight());
+				controller.robotZeichnen();
+			}
+		});
+
 		center.add(robotCanvas);
 		contentPane.add(center, BorderLayout.CENTER);
 
@@ -197,7 +257,6 @@ public class MyKaView implements MouseListener, KeyListener {
 		increaseFontSize(fenster, 0); // Alle Komponenten auf den gleichen Font setzen
 		fenster.pack();
 		fenster.setVisible(true);
-
 	}
 
 	/**
@@ -369,7 +428,7 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem questionToXMLEintrag = new JMenuItem("Frage nach XML");
 		questionToXMLEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
-				int index = fragenliste.locationToIndex(e.getPoint());				
+				//int index = fragenliste.locationToIndex(e.getPoint());				
 				//controller.execute(Controller.QuestionToXML, new String[] {""+index});
 			}
 		});
