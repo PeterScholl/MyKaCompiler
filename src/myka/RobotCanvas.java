@@ -24,8 +24,9 @@ public class RobotCanvas extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private BufferedImage foreground, background;
 	private int width, height;
+	private boolean debug=true;
 
-	public RobotCanvas(Controller c) {
+	public RobotCanvas(MyKaController c) {
 		super();
 		init_components();
 	}
@@ -33,6 +34,7 @@ public class RobotCanvas extends JPanel {
 	public void init_components() {
 		int width = getWidth();
 		int height = getHeight();
+		debug("width: "+width+" height: "+height);
 		foreground = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
 		background = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
 		Graphics g = foreground.getGraphics();
@@ -42,7 +44,7 @@ public class RobotCanvas extends JPanel {
 	}
 
 	public void clearBGScreen() {
-		//System.out.println("New Backgroundscreen generated");
+		debug("New Backgroundscreen generated");
 		background = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_INT_RGB);
 		width = this.getWidth();
 		height = this.getHeight();
@@ -72,5 +74,11 @@ public class RobotCanvas extends JPanel {
 	public BufferedImage getBufferedImage() {
 		if (this.getWidth() != width || this.getHeight() != height) clearBGScreen();
 		return background;
+	}
+	
+	private void debug(String text) {
+		if (debug) {
+			System.out.println("D RobotCanvas: "+text);
+		}
 	}
 }

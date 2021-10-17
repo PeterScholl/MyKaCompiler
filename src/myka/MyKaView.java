@@ -21,9 +21,10 @@ public class MyKaView implements MouseListener, KeyListener {
 	private JFrame fenster;
 	private JPanel center;
 	private JTextArea textareaSRC;
+	private RobotCanvas robotCanvas;
 	private JLabel upperLabel, statusLabel;
 	private JList<String> fragenliste = new JList<String>(new String[] {});
-	private Controller controller = null;
+	private MyKaController controller = null;
 	private Font generalfont = new Font("Dialog", Font.BOLD, 16);
 	private boolean debug=true;
 	private final static String infotext = "Vorlage zum Erstellen eines Lexers und Parsers";
@@ -31,7 +32,7 @@ public class MyKaView implements MouseListener, KeyListener {
 	/**
 	 * Constructor for objects of class GUI
 	 */
-	public MyKaView(Controller c, String title) {
+	public MyKaView(MyKaController c, String title) {
 		this.controller = c;
 		fensterErzeugen(title);
 	}
@@ -173,14 +174,17 @@ public class MyKaView implements MouseListener, KeyListener {
 		contentPane.add(upperLabel, BorderLayout.NORTH);
 
 		// Kern des Fensters ist ein Bereich für den Code und ein Canvas für den Roboter
-		center = new JPanel(new BorderLayout());
+		center = new JPanel(new GridLayout(1,2));
 
 		// Textarea für SRC-Code
 		textareaSRC = new JTextArea();
 		textareaSRC.setLineWrap(true);
 		textareaSRC.setWrapStyleWord(false);
 		new JScrollPane(textareaSRC);
-		center.add(textareaSRC, BorderLayout.CENTER);
+		center.add(textareaSRC);
+		// Canvas für den Roboter
+		robotCanvas = new RobotCanvas(controller);
+		center.add(robotCanvas);
 		contentPane.add(center, BorderLayout.CENTER);
 
 
@@ -201,7 +205,7 @@ public class MyKaView implements MouseListener, KeyListener {
 	 * Logical-datei und zeigt dieses an.
 	 */
 	private void srcDateiOeffnen() {
-		controller.execute(Controller.SRC_lesen, null);
+		controller.execute(MyKaController.SRC_lesen, null);
 		fenster.pack();
 	}
 
@@ -218,7 +222,8 @@ public class MyKaView implements MouseListener, KeyListener {
 	}
 
 	private void testfunktion() {
-		System.out.println("Testfunktion ausführen - aktuell keine");
+		System.out.println("Testfunktion ausführen - roboterzeichnen");
+		controller.robotZeichnen();
 	}
 
 	// ******** Von außen aufzurufende Methoden ***********//
@@ -261,19 +266,12 @@ public class MyKaView implements MouseListener, KeyListener {
 	}
 
 	public BufferedImage getBufferedImage() {
-		BufferedImage img = null;
+		// BufferedImage img = null;
 		// center.getBufferedImage().getGraphics().setFont(generalfont);
-		/*
-		BufferedImage img = center.getBufferedImage();
+		BufferedImage img = robotCanvas.getBufferedImage();
 		Graphics g = img.getGraphics();
 		g.setColor(Color.white);
 		g.fillRect(0, 0, img.getWidth(), img.getHeight());
-		if (bgImage != null) {
-			debug("Background-Image erstellen - Kartenhoehe" + bgImage.getHeight(center) + " weite:"
-					+ bgImage.getWidth(center));
-			g.drawImage(bgImage, 10, 10, img.getWidth() - 20, img.getHeight() - 20, center);
-		}
-		*/
 		return img;
 	}
 
@@ -453,6 +451,11 @@ public class MyKaView implements MouseListener, KeyListener {
 	private void debug(String text) {
 		if (debug)
 			System.out.println("V:" + text);
+	}
+
+	public void updateCanvas() {
+		robotCanvas.update();
+		robotCanvas.repaint();
 	}
 
 }
