@@ -57,8 +57,9 @@ public class Lexer {
 	private static Token generateTokenFromString(String text) {
 		debug("in generateTokenFromString: "+text);
 		if (tokentyp == Z_Alpha) {
-			String[] conditions = new String[] {"vorWand"};
-			String[] moves = new String[] {"Schritt", "DreheLinks", "DreheRechts"};
+			String[] conditions = new String[] {"IstWand","NichtIstWand","IstZiegel","NichtIstZiegel"};
+			String[] moves = new String[] {"Schritt", "DreheLinks", "DreheRechts", "Hinlegen", "Aufheben", "MarkeSetzen","MarkeLöschen" };
+			String[] control = new String[] {"wiederhole","mal","endewiederhole","wenn","dann","sonst","endewenn","Beenden"};
 			for (int i=0; i<moves.length; i++) {
 				debug("Vergleiche mit "+moves[i]);
 				if (text.equals(moves[i])) {
@@ -68,6 +69,11 @@ public class Lexer {
 			for (int i=0; i<conditions.length; i++) {
 				if (text.equals(conditions[i])) {
 					return new Token(Token.T_Cond,text);
+				}
+			}
+			for (int i=0; i<control.length; i++) {
+				if (text.equals(control[i])) {
+					return new Token(Token.T_Cont,text);
 				}
 			}
 			status = ERR_terminal_unknown;

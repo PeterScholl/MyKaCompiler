@@ -34,6 +34,8 @@ public class MyKaController {
 	public static final int FileSpeichern = 11; //Datei speichern
 	public static final int Lexen = 20; 		//Lexen
 	public static final int Parsen = 21; 		//Parsen
+	public static final int Execute = 22;		//Programm ausführen
+	public static final int RBefehl = 30; 		//RoboterBefehl in args ausführen
 	private int imagewidth,imageheight;
 	private RobotArea robotArea = new RobotArea();
 	private MyKaView view = null;
@@ -42,19 +44,27 @@ public class MyKaController {
 	private boolean debug = true;
 	private MyImgObserver imgobs = new MyImgObserver(this);
 	private List<Token> curTokenList= null;
+	private static MyKaController controller = null;
 
 	public static void main(String[] args) {
-		MyKaController c = new MyKaController();
+		MyKaController c = MyKaController.getController();
 		MyKaView v = new MyKaView(c, "Parser und Lexer nach MyKa (inf-schule.de) V 0.1");
 		c.view = v;
 		c.init();
 		c.robotZeichnen();
 	}
+	
+	public static MyKaController getController() {
+		if (controller == null) {
+			controller = new MyKaController();
+		}
+		return controller;
+	}
 
 	/**
 	 * 
 	 */
-	public MyKaController() {
+	private MyKaController() {
 	}
 	
 	public void init() {
@@ -144,7 +154,8 @@ public class MyKaController {
 			break;
 		case Parsen:
 			//TODO: Parser aufrufen
-			writeStatus("Parsing result: ");
+			Parser.parse(curTokenList);
+			writeStatus("Parsing result: "+Parser.getFehlerText());
 			break;
 		default:
 			System.err.println("No valid command: " + command + " with args " + Arrays.deepToString(args));
