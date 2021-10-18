@@ -61,7 +61,7 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem srcSpeichernEintrag = new JMenuItem("Source-Datei speichern");
 		srcSpeichernEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//controller.execute(Controller.SRC_speichern, null);
+				controller.execute(MyKaController.FileSpeichern, new String[] {textareaSRC.getText()});
 			}
 		});
 		dateimenue.add(srcSpeichernEintrag);
@@ -79,7 +79,8 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem srcLexenEintrag = new JMenuItem("Lexer");
 		srcLexenEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//TODO: Lexer aufrufen - Tokenliste generieren
+				// Lexer aufrufen - Tokenliste generieren
+				controller.execute(MyKaController.Lexen, new String[] {textareaSRC.getText()});
 			}
 		});
 		compmenue.add(srcLexenEintrag);
@@ -87,7 +88,8 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem parserEintrag = new JMenuItem("Parser aufrufen");
 		parserEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//TODO: Parsen - code prüfen
+				//ggf. vorhandene Tokenliste parsen
+				controller.execute(MyKaController.Parsen, null);
 			}
 		});
 		compmenue.add(parserEintrag);

@@ -13,6 +13,7 @@ import java.io.File;
 import java.util.Arrays;
 
 
+
 /**
  * Diese Klasse stellt den Controller zwischen dem Lexer,Parser,Compiler,Iinterpreter und dem View
  * (grafische Oberfläche) dar
@@ -30,6 +31,9 @@ public class MyKaController {
 	public static final int MarkeSetzen = 6;	//Roboter setzt eine Marke
 	public static final int MarkeLoeschen = 7;	//Roboter entfernt eine Marke
 	public static final int FileLesen = 10;		//Datei einlesen
+	public static final int FileSpeichern = 11; //Datei speichern
+	public static final int Lexen = 20; 		//Lexen
+	public static final int Parsen = 21; 		//Parsen
 	private int imagewidth,imageheight;
 	private RobotArea robotArea = new RobotArea();
 	private MyKaView view = null;
@@ -37,6 +41,7 @@ public class MyKaController {
 	private static Image[] imgRobs = new Image[4];
 	private boolean debug = true;
 	private MyImgObserver imgobs = new MyImgObserver(this);
+	private List<Token> curTokenList= null;
 
 	public static void main(String[] args) {
 		MyKaController c = new MyKaController();
@@ -84,14 +89,19 @@ public class MyKaController {
 	}
 
 	public void execute(int command, String[] args) {
+		writeStatus("");
 		int result = 0;
 		switch (command) {
 		case FileLesen:
 			File file = Dateiaktionen.chooseFileToRead();
 			curfilename = (file != null ? file.getAbsolutePath() : "");
 			if (file != null) {
-				//TODO File einlesen
+				String inhaltMC = Dateiaktionen.liesTextDatei(file);
+				view.fillSRCArea(inhaltMC);
 			}
+			break;
+		case FileSpeichern:
+			Dateiaktionen.writeStringToFile(args[0]);
 			break;
 		case Schritt:
 			result = robotArea.forward();
@@ -127,6 +137,14 @@ public class MyKaController {
 			result = robotArea.unmark();
 			robotZeichnen();
 			writeStatus(RobotArea.fehlertext[-result]);
+			break;
+		case Lexen:
+			curTokenList = Lexer.lex(args[0]);
+			writeStatus("Lexing result: "+Lexer.getStatus());
+			break;
+		case Parsen:
+			//TODO: Parser aufrufen
+			writeStatus("Parsing result: ");
 			break;
 		default:
 			System.err.println("No valid command: " + command + " with args " + Arrays.deepToString(args));
