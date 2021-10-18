@@ -22,7 +22,14 @@ import java.util.Arrays;
  */
 public class MyKaController {
 	public static String curfilename = "";
-	public static final int SRC_lesen = 1; // SRC-Datei-Textdatei lesen
+	public static final int Schritt = 1;		//Roboter geht einen Schritt vorwärts
+	public static final int LinksDrehen = 2;	//Roboter dreht sich nach links
+	public static final int RechtsDrehen = 3;	//Roboter dreht sich nach rechts
+	public static final int Hinlegen = 4;		//Roboter legt einen Ziegel ab
+	public static final int Aufheben = 5;		//Roboter hebt einen Ziegel auf
+	public static final int MarkeSetzen = 6;	//Roboter setzt eine Marke
+	public static final int MarkeLoeschen = 7;	//Roboter entfernt eine Marke
+	public static final int FileLesen = 10;		//Datei einlesen
 	private int imagewidth,imageheight;
 	private RobotArea robotArea = new RobotArea();
 	private MyKaView view = null;
@@ -77,13 +84,49 @@ public class MyKaController {
 	}
 
 	public void execute(int command, String[] args) {
+		int result = 0;
 		switch (command) {
-		case SRC_lesen:
+		case FileLesen:
 			File file = Dateiaktionen.chooseFileToRead();
 			curfilename = (file != null ? file.getAbsolutePath() : "");
 			if (file != null) {
 				//TODO File einlesen
 			}
+			break;
+		case Schritt:
+			result = robotArea.forward();
+			robotZeichnen();
+			writeStatus(RobotArea.fehlertext[-result]);
+			break;
+		case LinksDrehen:
+			result = robotArea.turnLeft();
+			robotZeichnen();
+			writeStatus(RobotArea.fehlertext[-result]);
+			break;
+		case RechtsDrehen:
+			result = robotArea.turnRight();
+			robotZeichnen();
+			writeStatus(RobotArea.fehlertext[-result]);
+			break;
+		case Aufheben:
+			result = robotArea.aufnehmen();
+			robotZeichnen();
+			writeStatus(RobotArea.fehlertext[-result]);
+			break;
+		case Hinlegen:
+			result = robotArea.ablegen();
+			robotZeichnen();
+			writeStatus(RobotArea.fehlertext[-result]);
+			break;
+		case MarkeSetzen:
+			result = robotArea.mark();
+			robotZeichnen();
+			writeStatus(RobotArea.fehlertext[-result]);
+			break;
+		case MarkeLoeschen:
+			result = robotArea.unmark();
+			robotZeichnen();
+			writeStatus(RobotArea.fehlertext[-result]);
 			break;
 		default:
 			System.err.println("No valid command: " + command + " with args " + Arrays.deepToString(args));
@@ -173,7 +216,7 @@ public class MyKaController {
 				}
 				if (r_pos[0]==j && r_pos[1]==i) { // Roboter zeichnen
 					debug("Roboter bei "+j+"-"+i);
-					g.drawImage(imgRobs[robotArea.getDir()], ursprung_x+j*30-15-i*15,ursprung_y+i*15-15-akt_h-45,view.robotCanvas);
+					g.drawImage(imgRobs[robotArea.getDir()], ursprung_x+j*30-15-i*15,ursprung_y+i*15-15-akt_h-45,null);
 				}
 			}
 		}

@@ -24,6 +24,17 @@ public class RobotArea {
 	public static final int RET_MinReached = -6; //Maximum an Ziegeln erreicht
 	public static final int RET_AlreadyMarked = -7; //Marke breits gesetzt
 	public static final int RET_AlreadyUnmarked = -8; //Marke war nicht gesetzt
+	public static final String[] fehlertext = new String[] {
+			"Erfolg",
+			"Fehler",
+			"Fehler: Zu Hoch - Schritt nicht moeglich",
+			"Fehler: Rand erreicht",
+			"Fehler: Ausserhalb des Bereichs",
+			"Fehler: Maximum erreicht",
+			"Fehler: Minimum erreicht",
+			"Fehler: Schon markiert",
+			"Fehler: Hat keine Markierung"
+	};
 	private int width,length,height;
 	private int rob_x,rob_y;
 	private int dir;
@@ -228,6 +239,15 @@ public class RobotArea {
 	 */
 	public boolean ismarked() {
 		return getMark(rob_x, rob_y);
+	}
+	
+	/**
+	 * prueft, ob der Roboter vor einer Wand steht
+	 * @return true or false
+	 */
+	public boolean vorWand() {
+		int[] n = nextFeld();
+		return !isInside(n[0], n[1]);
 	}
 	
 	

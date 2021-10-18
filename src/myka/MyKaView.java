@@ -21,9 +21,9 @@ public class MyKaView implements MouseListener, KeyListener {
 	private JFrame fenster;
 	private JPanel center;
 	private JTextArea textareaSRC;
-	public RobotCanvas robotCanvas;
+	private RobotCanvas robotCanvas;
 	private JLabel upperLabel, statusLabel;
-	private JList<String> fragenliste = new JList<String>(new String[] {});
+	//private JList<String> fragenliste = new JList<String>(new String[] {});
 	private MyKaController controller = null;
 	private Font generalfont = new Font("Dialog", Font.BOLD, 16);
 	private boolean debug=true;
@@ -102,46 +102,55 @@ public class MyKaView implements MouseListener, KeyListener {
 
 		JMenu robotermenue = new JMenu("Roboter"); // Zugriff auf den Roboter-Menue
 		menuezeile.add(robotermenue);
-		JMenuItem gehe = new JMenuItem("Schritt");
+		JMenuItem gehe = new JMenuItem("Schritt (g)");
 		gehe.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				controller.getRobotArea().forward();
-				controller.robotZeichnen();
+				controller.execute(MyKaController.Schritt, null);
 			}
 		});
 		robotermenue.add(gehe);
-		JMenuItem turnLeft = new JMenuItem("linksDrehen");
+		JMenuItem turnLeft = new JMenuItem("linksDrehen (l)");
 		turnLeft.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				controller.getRobotArea().turnLeft();
-				controller.robotZeichnen();
+				controller.execute(MyKaController.LinksDrehen, null);
 			}
 		});
 		robotermenue.add(turnLeft);
-		JMenuItem turnRight = new JMenuItem("rechtsDrehen");
+		JMenuItem turnRight = new JMenuItem("rechtsDrehen (r)");
 		turnRight.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				controller.getRobotArea().turnRight();
-				controller.robotZeichnen();
+				controller.execute(MyKaController.RechtsDrehen, null);
 			}
 		});
 		robotermenue.add(turnRight);
-		JMenuItem ablegen = new JMenuItem("ablegen");
+		JMenuItem ablegen = new JMenuItem("hinlegen (h)");
 		ablegen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				controller.getRobotArea().ablegen();
-				controller.robotZeichnen();
+				controller.execute(MyKaController.Hinlegen, null);
 			}
 		});
 		robotermenue.add(ablegen);
-		JMenuItem aufheben = new JMenuItem("aufheben");
+		JMenuItem aufheben = new JMenuItem("aufheben (a)");
 		aufheben.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				controller.getRobotArea().aufnehmen();
-				controller.robotZeichnen();
+				controller.execute(MyKaController.Aufheben, null);
 			}
 		});
 		robotermenue.add(aufheben);
+		JMenuItem markeSetzen = new JMenuItem("markeSetzen (m)");
+		markeSetzen.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				controller.execute(MyKaController.MarkeSetzen, null);
+			}
+		});
+		robotermenue.add(markeSetzen);
+		JMenuItem markeLoeschen = new JMenuItem("markeLoeschen (n)");
+		markeLoeschen.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				controller.execute(MyKaController.MarkeLoeschen, null);
+			}
+		});
+		robotermenue.add(markeLoeschen);
 		JMenuItem info = new JMenuItem("aktueller Status");
 		info.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -237,6 +246,7 @@ public class MyKaView implements MouseListener, KeyListener {
 		robotCanvas = new RobotCanvas(controller);
 		robotCanvas.addMouseListener(this);
 		//robotCanvas.addMouseMotionListener(this);
+		robotCanvas.addKeyListener(this);
 		robotCanvas.addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent componentEvent) {
 				debug("Resized" + center.getWidth() + "-" + center.getHeight());
@@ -264,7 +274,7 @@ public class MyKaView implements MouseListener, KeyListener {
 	 * Logical-datei und zeigt dieses an.
 	 */
 	private void srcDateiOeffnen() {
-		controller.execute(MyKaController.SRC_lesen, null);
+		controller.execute(MyKaController.FileLesen, null);
 		fenster.pack();
 	}
 
@@ -281,13 +291,14 @@ public class MyKaView implements MouseListener, KeyListener {
 	}
 
 	private void testfunktion() {
-		System.out.println("Testfunktion ausführen - roboterzeichnen");
-		controller.robotZeichnen();
+		System.out.println("Testfunktion ausführen - Focus auf Jpanel");
+		robotCanvas.requestFocus();
 	}
 
 	// ******** Von außen aufzurufende Methoden ***********//
 
 	public void setStatusLine(String text) {
+		debug("Status schreiben: "+text);
 		statusLabel.setText(text);
 	}
 
@@ -351,16 +362,19 @@ public class MyKaView implements MouseListener, KeyListener {
 	@Override
 	public void mousePressed(MouseEvent e) {
 		//System.out.println("Pressed: " + e);
-		if (e.isPopupTrigger() && e.getSource().equals(fragenliste)) {
+		if (e.isPopupTrigger() && e.getSource().equals(robotCanvas)) {
 			//System.out.println("Pop-UP-Menu der Fragenliste öffnen! - Mouse pressed");
 			this.doPopMenuFragenliste(e);
+		} else if (e.getSource().equals(robotCanvas)) {
+			debug("Focus on robotCanvas");
+			robotCanvas.requestFocus();
 		}
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		//System.out.println("Released: " + e);
-		if (e.isPopupTrigger() && e.getSource().equals(fragenliste)) {
+		if (e.isPopupTrigger() && e.getSource().equals(robotCanvas)) {
 			//System.out.println("Pop-UP-Menu der Fragenliste öffnen! - Mouse released");
 			this.doPopMenuFragenliste(e);
 		}
@@ -393,30 +407,41 @@ public class MyKaView implements MouseListener, KeyListener {
 	@Override
 	public void keyReleased(KeyEvent e) {
 		// TODO Auto-generated method stub
-		if (e.getSource().equals(fragenliste)) {
-			System.out.println("Key in Liste gedrückt - bei Element " + fragenliste.getSelectedIndex());
+		if (e.getSource().equals(robotCanvas)) {
+			System.out.println("Key in Canvas gedrückt:" + e.getKeyCode());
 			int code = e.getKeyCode();
 
 			switch (code) {
+			case 71: //g
+				controller.execute(MyKaController.Schritt, null);
+				break;
+			case 76: //l
+				controller.execute(MyKaController.LinksDrehen, null);
+				break;
+			case 82: //r
+				controller.execute(MyKaController.RechtsDrehen, null);
+				break;
+			case 65: //a
+				controller.execute(MyKaController.Aufheben, null);
+				break;
+			case 72: //h
+				controller.execute(MyKaController.Hinlegen, null);
+				break;
+			case 77: //m
+				controller.execute(MyKaController.MarkeSetzen, null);
+				break;
+			case 78: //n
+				controller.execute(MyKaController.MarkeLoeschen, null);
+				break;
 			case KeyEvent.VK_UP:
-				System.out.println("UP " + fragenliste.getSelectedIndex());
+				System.out.println("UP ");
 				break;
 			case KeyEvent.VK_DOWN:
-				System.out.println("DOWN " + fragenliste.getSelectedIndex());
+				System.out.println("DOWN ");
 				break;
 			case KeyEvent.VK_DELETE:
-				System.out.println("Del " + fragenliste.getSelectedValue());
-				System.out.println("Delete Indices: " + Arrays.toString(fragenliste.getSelectedIndices()));
-				String frage = "Sind Sie sicher, dass Sie die gewählten " + fragenliste.getSelectedIndices().length
-						+ " Elemente löschen wollen?";
-				if (JOptionPane.YES_OPTION == Hilfsfunktionen.sindSieSicher(fenster, frage)) {
-					String[] args = new String[fragenliste.getSelectedIndices().length];
-					for (int i = 0; i < args.length; i++)
-						args[i] = "" + fragenliste.getSelectedIndices()[i];
-					//controller.execute(Controller.Delete_Questions, args);
-				} else {
-					this.setStatusLine("Löschen abgebrochen");
-				}
+				System.out.println("Del ");
+				break;
 			}
 		}
 
