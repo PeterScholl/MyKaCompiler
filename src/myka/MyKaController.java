@@ -44,6 +44,7 @@ public class MyKaController {
 	private boolean debug = true;
 	private MyImgObserver imgobs = new MyImgObserver(this);
 	private List<Token> curTokenList= null;
+	private Token[] curTokenArray = null;
 	private static MyKaController controller = null;
 
 	public static void main(String[] args) {
@@ -151,10 +152,11 @@ public class MyKaController {
 		case Lexen:
 			curTokenList = Lexer.lex(args[0]);
 			writeStatus("Lexing result: "+Lexer.getStatus());
+			curTokenArray = Hilfsfunktionen.convertTokenListToArray(curTokenList);
 			break;
 		case Parsen:
 			//TODO: Parser aufrufen
-			Parser.parse(curTokenList);
+			Parser.parse(curTokenArray);
 			writeStatus("Parsing result: "+Parser.getFehlerText());
 			break;
 		default:

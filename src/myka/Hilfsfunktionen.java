@@ -56,4 +56,21 @@ public class Hilfsfunktionen {
 		}
 		return ret;
 	}
+	
+	public static Token[] convertTokenListToArray(List<Token> tokenlist) {
+		tokenlist.toFirst();
+		int count = 0;
+		while (tokenlist.hasAccess()) {
+			count++;
+			tokenlist.next();
+		}
+		Token[] ret = new Token[count];
+		tokenlist.toFirst();
+		count = 0;
+		while (tokenlist.hasAccess()) {
+			ret[count++]=tokenlist.getContent();
+			tokenlist.next();
+		}
+		return ret;		
+	}
 }

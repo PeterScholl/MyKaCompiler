@@ -16,37 +16,39 @@ public class Parser {
 	private static String fehlertext="";
 	private static Stack<Character> keller = new Stack<Character>();
 	private static boolean debug = true;
+	private static int curpos = 0;
+	private static Token[] tokenArray = null;
 
 	public Parser() {
 		// TODO Auto-generated constructor stub
 	}
 	
-	public static boolean parse(List<Token> tokenliste) {
+	public static boolean parse(Token[] tokenliste) {
 		fehlertext="Success!!";
 		keller = new Stack<Character>();
 		keller.push('#'); //leerer Kellerspeicher
-		tokenliste.toFirst();
-		return pruefeProgramm(tokenliste);
+		curpos = 0;
+		tokenArray = tokenliste;
+		return pruefeProgramm();
 	}
 
-	private static boolean pruefeProgramm(List<Token> tokenliste) {
-		if (tokenliste.hasAccess()) {
-			Token akt = tokenliste.getContent();
+	private static boolean pruefeProgramm() {
+		if (hasAccess()) {
+			Token akt = tokenArray[curpos];
 			debug("In pruefe Programm mit Token:"+akt);
 			if (akt.getTyp()==Token.T_Move && keller.top()=='#') {
-				tokenliste.next();
-				return pruefeProgramm(tokenliste);
+				curpos++;
+				return pruefeProgramm();
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wiederhole") && keller.top()=='#') {
 				//Wiederholung begonnen
-				tokenliste.next();
+				curpos++;
 				keller.push('w'); //wiederholung eintragen
-				return pruefeOpenWhile(tokenliste);
+				return pruefeOpenWhile();
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wenn") && keller.top()=='#') {
 				//WennDann begonnen
-				tokenliste.next();
+				curpos++;
 				keller.push('i'); //if eintragen
-				return pruefeOpenIf(tokenliste);
-				//return pruefeInIf(tokenliste);
+				return pruefeOpenIf();
 			} else {
 				fehlertext = "Unerwartetes Token: "+akt;
 				return false;
@@ -55,33 +57,38 @@ public class Parser {
 		return true; //leeres (Rest-)Programm
 	}
 
-	private static boolean pruefeOpenWhile(List<Token> tokenliste) {
-		if (!tokenliste.hasAccess()) return eofWhileParsing(); //Eigentlich ueberfluessig
-		Token akt = tokenliste.getContent();
+	private static boolean pruefeOpenWhile() {
+		if (!hasAccess()) return eofWhileParsing(); //Eigentlich ueberfluessig
+		int startwhilenr = curpos-1;
+		Token akt = tokenArray[curpos];
 		debug("In pruefe OpenWhile mit Token:"+akt);
 		if (akt.getTyp()==Token.T_Zahl) {
 			//Wiederhole n mal schleife
-			tokenliste.next();
-			if (!tokenliste.hasAccess()) return eofWhileParsing();
-			akt = tokenliste.getContent();
+			curpos++;
+			if (!hasAccess()) return eofWhileParsing();
+			akt = tokenArray[curpos];
 			if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("mal")) {
-				tokenliste.next();
-				if (!tokenliste.hasAccess()) return eofWhileParsing();
+				curpos++;
+				if (!hasAccess()) return eofWhileParsing();
 				//hier startet die eigentliche Pruefung auf Input
-				return pruefeInWhile(tokenliste);
+				boolean result = pruefeInWhile();
+				int endwhilenr = curpos-1;
+				debug("While von "+startwhilenr+":"+tokenArray[startwhilenr]);
+				debug("While von "+endwhilenr+":"+tokenArray[endwhilenr]);
+				return result;
 			}
 			fehlertext = "while ohne Wort mal";
 			return false;
 		} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("solange")) { 
 			//Wiederhole solange Schleife
-			tokenliste.next();
-			if (!tokenliste.hasAccess()) return eofWhileParsing();
-			akt = tokenliste.getContent();
+			curpos++;
+			if (!hasAccess()) return eofWhileParsing();
+			akt = tokenArray[curpos];
 			if (akt.getTyp()==Token.T_Cond) {
-				tokenliste.next();
-				if (!tokenliste.hasAccess()) return eofWhileParsing();
+				curpos++;
+				if (!hasAccess()) return eofWhileParsing();
 				//hier startet die eigentliche Pruefung auf Input
-				return pruefeInWhile(tokenliste);
+				return pruefeInWhile();
 			}
 			fehlertext = "wiederhole solange ohne Bedingung";
 			return false;
@@ -92,28 +99,29 @@ public class Parser {
 		}
 	}
 		
-	private static boolean pruefeInWhile(List<Token> tokenliste) {
+	private static boolean pruefeInWhile() {
 		if (keller.top()=='#') {
-			return pruefeProgramm(tokenliste);
+			return pruefeProgramm();
 		}
 		if (keller.top()=='i' || keller.top()=='s') {
-			return pruefeInIf(tokenliste);
+			return pruefeInIf();
 		}	
-		if (tokenliste.hasAccess()) {
-			Token akt = tokenliste.getContent();
+		if (hasAccess()) {
+			Token akt = tokenArray[curpos];
 			debug("In pruefe InWhile mit Token:"+akt);
 			if (akt.getTyp()==Token.T_Move && keller.top()=='w') {
-				tokenliste.next();
-				return pruefeInWhile(tokenliste);
+				curpos++;
+				return pruefeInWhile();
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("endewiederhole") && keller.top()=='w') {
 				//eine Wiederholung beendet
 				keller.pop(); //wiederholung aus Keller entfernen
-				tokenliste.next();
-				return pruefeInWhile(tokenliste);
+				curpos++;
+				return pruefeInWhile();
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wenn")) {
 				//WennDann begonnen
 				keller.push('i'); //if eintragen
-				return pruefeOpenIf(tokenliste);
+				curpos++;
+				return pruefeOpenIf();
 			} else {
 				fehlertext = "Unerwartetes Token: "+akt;
 				return false;
@@ -122,19 +130,19 @@ public class Parser {
 		fehlertext = "Programm endet in Schleife";
 		return false; 
 	}
-	private static boolean pruefeOpenIf(List<Token> tokenliste) {
-		if (!tokenliste.hasAccess()) return eofWhileParsing(); //Eigentlich ueberfluessig
-		Token akt = tokenliste.getContent();
+	private static boolean pruefeOpenIf() {
+		if (!hasAccess()) return eofWhileParsing(); //Eigentlich ueberfluessig
+		Token akt = tokenArray[curpos];
 		debug("In pruefe OpenIf mit Token:"+akt);
 		if (akt.getTyp()==Token.T_Cond) {
 			//in Bedingung
-			tokenliste.next();
-			if (!tokenliste.hasAccess()) return eofWhileParsing();
-			akt = tokenliste.getContent();
+			curpos++;
+			if (!hasAccess()) return eofWhileParsing();
+			akt = tokenArray[curpos];
 			if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("dann")) {
-				tokenliste.next();
-				if (!tokenliste.hasAccess()) return eofWhileParsing();
-				return pruefeInIf(tokenliste);
+				curpos++;
+				if (!hasAccess()) return eofWhileParsing();
+				return pruefeInIf();
 			}
 			fehlertext = "if ohne dann!";
 			return false;
@@ -144,35 +152,35 @@ public class Parser {
 		}
 	}
 		
-	private static boolean pruefeInIf(List<Token> tokenliste) {
+	private static boolean pruefeInIf() {
 		if (keller.top()=='#') {
-			return pruefeProgramm(tokenliste);
+			return pruefeProgramm();
 		}
 		if (keller.top()=='w') {
 			//return false;
-			return pruefeInWhile(tokenliste);
+			return pruefeInWhile();
 		}	
-		if (tokenliste.hasAccess()) {
-			Token akt = tokenliste.getContent();
+		if (hasAccess()) {
+			Token akt = tokenArray[curpos];
 			debug("In pruefe InIf mit Token:"+akt);
 			if (akt.getTyp()==Token.T_Move) {
-				tokenliste.next();
-				return pruefeInIf(tokenliste);
+				curpos++;
+				return pruefeInIf();
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("sonst") && keller.top()=='i') {
 				//eine Bedingungsbearbeitung beendet
 				keller.pop();
 				keller.push('s');
-				tokenliste.next();
-				return pruefeInIf(tokenliste);
+				curpos++;
+				return pruefeInIf();
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("endewenn")) {
 				//eine Bedingung beendet
 				keller.pop(); //Bedingung aus Keller entfernen
-				tokenliste.next();
-				return pruefeInIf(tokenliste);
+				curpos++;
+				return pruefeInIf();
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wiederhole")) {
 				//Wiederhole begonnen
 				keller.push('w'); //if eintragen
-				return pruefeOpenWhile(tokenliste);
+				return pruefeOpenWhile();
 			} else {
 				fehlertext = "Unerwartetes Token: "+akt;
 				return false;
@@ -194,6 +202,10 @@ public class Parser {
 	
 	private static void debug(String text) {
 		if (debug) System.out.println("P:"+text);
+	}
+	
+	private static boolean hasAccess() {
+		return curpos < tokenArray.length;
 	}
 	
 	

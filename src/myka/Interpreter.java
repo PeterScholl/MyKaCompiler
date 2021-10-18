@@ -16,6 +16,7 @@ public class Interpreter {
 	private static String fehlertext="";
 	private static Stack<Character> keller = new Stack<Character>();
 	private static boolean debug = true;
+	private static MyKaController controller = null;
 
 	public Interpreter() {
 		// TODO Auto-generated constructor stub
@@ -26,43 +27,42 @@ public class Interpreter {
 		keller = new Stack<Character>();
 		keller.push('#'); //leerer Kellerspeicher
 		tokenliste.toFirst();
-		return pruefeProgramm(tokenliste);
+		controller = MyKaController.getController();
+		executeProgramm(tokenliste);
 	}
 
-	private static boolean pruefeProgramm(List<Token> tokenliste) {
+	private static void executeProgramm(List<Token> tokenliste) {
 		if (tokenliste.hasAccess()) {
 			Token akt = tokenliste.getContent();
-			debug("In pruefe Programm mit Token:"+akt);
+			debug("In execute Programm mit Token:"+akt);
 			if (akt.getTyp()==Token.T_Move && keller.top()=='#') {
+				controller.execute(MyKaController.RBefehl, new String[] {akt.getWert()});
 				tokenliste.next();
-				return pruefeProgramm(tokenliste);
+				executeProgramm(tokenliste);
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wiederhole") && keller.top()=='#') {
 				//Wiederholung begonnen
 				tokenliste.next();
 				keller.push('w'); //wiederholung eintragen
-				return pruefeOpenWhile(tokenliste);
+				executeOpenWhile(tokenliste);
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wenn") && keller.top()=='#') {
 				//WennDann begonnen
 				tokenliste.next();
 				keller.push('i'); //if eintragen
-				return pruefeOpenIf(tokenliste);
-				//return pruefeInIf(tokenliste);
+				executeOpenIf(tokenliste);
 			} else {
 				fehlertext = "Unerwartetes Token: "+akt;
-				return false;
+				return;
 			}
 		}
-		return true; //leeres (Rest-)Programm
 	}
 
-	private static boolean pruefeOpenWhile(List<Token> tokenliste) {
-		if (!tokenliste.hasAccess()) return eofWhileParsing(); //Eigentlich ueberfluessig
+	private static void executeOpenWhile(List<Token> tokenliste) {
 		Token akt = tokenliste.getContent();
-		debug("In pruefe OpenWhile mit Token:"+akt);
+		debug("In execute OpenWhile mit Token:"+akt);
 		if (akt.getTyp()==Token.T_Zahl) {
 			//Wiederhole n mal schleife
+			int anz = akt.getValue();
 			tokenliste.next();
-			if (!tokenliste.hasAccess()) return eofWhileParsing();
 			akt = tokenliste.getContent();
 			if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("mal")) {
 				tokenliste.next();
@@ -80,7 +80,7 @@ public class Interpreter {
 		
 	private static boolean pruefeInWhile(List<Token> tokenliste) {
 		if (keller.top()=='#') {
-			return pruefeProgramm(tokenliste);
+			return executeProgramm(tokenliste);
 		}
 		if (keller.top()=='i' || keller.top()=='s') {
 			return pruefeInIf(tokenliste);
@@ -99,7 +99,7 @@ public class Interpreter {
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wenn")) {
 				//WennDann begonnen
 				keller.push('i'); //if eintragen
-				return pruefeOpenIf(tokenliste);
+				return executeOpenIf(tokenliste);
 			} else {
 				fehlertext = "Unerwartetes Token: "+akt;
 				return false;
@@ -108,7 +108,7 @@ public class Interpreter {
 		fehlertext = "Programm endet in Schleife";
 		return false; 
 	}
-	private static boolean pruefeOpenIf(List<Token> tokenliste) {
+	private static boolean executeOpenIf(List<Token> tokenliste) {
 		if (!tokenliste.hasAccess()) return eofWhileParsing(); //Eigentlich ueberfluessig
 		Token akt = tokenliste.getContent();
 		debug("In pruefe OpenIf mit Token:"+akt);
@@ -132,7 +132,7 @@ public class Interpreter {
 		
 	private static boolean pruefeInIf(List<Token> tokenliste) {
 		if (keller.top()=='#') {
-			return pruefeProgramm(tokenliste);
+			return executeProgramm(tokenliste);
 		}
 		if (keller.top()=='w') {
 			//return false;
@@ -158,7 +158,7 @@ public class Interpreter {
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wiederhole")) {
 				//Wiederhole begonnen
 				keller.push('w'); //if eintragen
-				return pruefeOpenWhile(tokenliste);
+				return executeOpenWhile(tokenliste);
 			} else {
 				fehlertext = "Unerwartetes Token: "+akt;
 				return false;
