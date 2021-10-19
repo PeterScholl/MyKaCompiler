@@ -16,7 +16,7 @@ public class Interpreter {
 	private static final int MAX_REK_DEPTH = 20;
 	private static int depth = 0;
 	private static Stack<Character> keller = new Stack<Character>();
-	private static boolean debug = true;
+	private static final boolean debug = false;
 	private static MyKaController controller = null;
 	private static int curpos=0;
 	private static Token[] tokenliste = null;

@@ -37,12 +37,13 @@ public class MyKaController {
 	public static final int Parsen = 21; // Parsen
 	public static final int Execute = 22; // Programm ausführen
 	public static final int RBefehl = 30; // RoboterBefehl in args ausführen
+	private static final boolean debug = false;
 	private int imagewidth, imageheight;
 	private RobotArea robotArea = new RobotArea();
 	private MyKaView view = null;
 	private static Image imgZiegel;
 	private static Image[] imgRobs = new Image[4];
-	private boolean debug = true, lexed = false, parsed = false;
+	private boolean lexed = false, parsed = false;
 	private List<Token> curTokenList = null;
 	private Token[] curTokenArray = null;
 	private boolean enableInput = true;
@@ -50,8 +51,7 @@ public class MyKaController {
 
 	public static void main(String[] args) {
 		MyKaController c = MyKaController.getController();
-		MyKaView v = new MyKaView(c, "Parser und Lexer nach MyKa (inf-schule.de) V 0.1");
-		c.view = v;
+		c.view = new MyKaView(c, "Parser und Lexer nach MyKa (inf-schule.de) V 0.1");
 		c.init();
 		c.robotZeichnen();
 	}
@@ -66,7 +66,7 @@ public class MyKaController {
 	/**
 	 * 
 	 */
-	private MyKaController() {
+	private MyKaController() { //Singleton - darum private
 	}
 
 	public void init() {
@@ -88,6 +88,7 @@ public class MyKaController {
 		aktfile = new File("./bilder/robotS.png");
 		imgRobs[RobotArea.DIR_SOUTH] = kit.getImage(aktfile.getAbsolutePath());
 		// TODO: Bessere Lösung finden als diesen Kniff!!
+		debug("Kniff!");
 		for (int i = 0; i < 4; i++) {
 			robotArea.turnLeft();
 			robotZeichnen();
@@ -97,6 +98,7 @@ public class MyKaController {
 		robotZeichnen();
 		robotArea.aufnehmen();
 		robotZeichnen();
+		debug("Kniff beendet");
 		//Ende Kniff, damit alle Bilder geladen sind
 	}
 
@@ -302,7 +304,7 @@ public class MyKaController {
 	public boolean robotZeichnen() {
 		// hier soll die aktuelle Situation der RobotArea gezeichnet werden
 		if (view == null) {
-			System.err.println("Kein Canvas zum Zeichnen!");
+			System.err.println("In MyKaController - robotZeichnen - Kein Canvas zum Zeichnen!");
 			return false;
 		}
 		BufferedImage img = view.getBufferedImage();
@@ -411,6 +413,10 @@ public class MyKaController {
 		} catch (InterruptedException e) {
 			debug("sleep failed ?!");
 		}
+	}
+
+	public void setView(MyKaView myKaView) {
+		view=myKaView;		
 	}
 
 }

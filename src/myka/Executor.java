@@ -19,7 +19,7 @@ public class Executor extends Thread {
 	}
 
 	public void run() {
-		System.out.println("Starting thread");
+		//System.out.println("Starting thread");
 		if (!running) {
 			running = true;
 			Interpreter.execute(tokenliste);

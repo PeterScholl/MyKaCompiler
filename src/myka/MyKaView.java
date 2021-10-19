@@ -32,14 +32,15 @@ public class MyKaView implements MouseListener, KeyListener {
 	//private JList<String> fragenliste = new JList<String>(new String[] {});
 	private MyKaController controller = null;
 	private Font generalfont = new Font("Dialog", Font.BOLD, 16);
-	private boolean debug=false;
-	private final static String infotext = "Vorlage zum Erstellen eines Lexers und Parsers";
+	private static final boolean debug=false;
+	private final static String infotext = "Vorlage zum Erstellen eines Lexers und Parsers\nWeitere Infos im README.md";
 
 	/**
 	 * Constructor for objects of class GUI
 	 */
 	public MyKaView(MyKaController c, String title) {
 		this.controller = c;
+		c.setView(this);
 		fensterErzeugen(title);
 	}
 
@@ -82,7 +83,7 @@ public class MyKaView implements MouseListener, KeyListener {
 
 		compmenue = new JMenu("Compiler"); // Menue für die Verarbeitung
 		menuezeile.add(compmenue);
-		JMenuItem srcLexenEintrag = new JMenuItem("Lexer");
+		JMenuItem srcLexenEintrag = new JMenuItem("Lexer aufrufen");
 		srcLexenEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// Lexer aufrufen - Tokenliste generieren
@@ -259,9 +260,15 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem srcBeispielEintrag = new JMenuItem("Beispielcode einfügen");
 		srcBeispielEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String bsp = "wiederhole 4 mal\n"
+				String bsp = "{Beispielcode - dies ist ein Kommentar}\n"
+						+ "wiederhole 4 mal\n"
 						+ "  wiederhole solange NichtIstWand\n"
 						+ "    Hinlegen\n    Schritt\n"
+						+ "    wenn IstMarke dann\n"
+						+ "      MarkeLöschen\n"
+						+ "    sonst\n"
+						+ "      MarkeSetzen\n"
+						+ "    endewenn\n"
 						+ "  endewiederhole\n"
 						+ "  LinksDrehen\n"
 						+ "endewiederhole\n";
@@ -303,16 +310,17 @@ public class MyKaView implements MouseListener, KeyListener {
 		textareaSRC.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void insertUpdate(DocumentEvent e) {
-				System.out.println("insertUpdate fired!");
 				textChanged();
 			}
 			@Override
 			public void removeUpdate(DocumentEvent e) {
-				System.out.println("removeUpdate fired!");
+				debug("removeUpdate fired!");
+				textChanged();
 			}
 			@Override
 			public void changedUpdate(DocumentEvent e) {
-				System.out.println("changedUpdate fired!");
+				debug("changedUpdate fired!");
+				textChanged();
 			}   
 		});
 		center.add(new JScrollPane(textareaSRC));

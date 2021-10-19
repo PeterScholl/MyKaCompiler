@@ -24,7 +24,7 @@ public class RobotCanvas extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private BufferedImage foreground, background;
 	private int width, height;
-	private boolean debug=true;
+	private static final boolean debug=false;
 
 	public RobotCanvas(MyKaController c) {
 		super();

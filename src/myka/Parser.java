@@ -15,7 +15,7 @@ package myka;
 public class Parser {
 	private static String fehlertext="";
 	private static Stack<Character> keller = new Stack<Character>();
-	private static boolean debug = true;
+	private static final boolean debug = false;
 	private static int curpos = 0;
 	private static Token[] tokenArray = null;
 
