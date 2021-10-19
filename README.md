@@ -8,7 +8,11 @@ Die Idee habe ich von der Webseite [inf-schule.de](https://www.inf-schule.de/aut
 
 Weitere Anregungen stammen aus dem Projekt [robot-karol-web](https://github.com/Entkenntnis/robot-karol-web) hier auf github
 
-## Befehlsübersich
+## Schnellstart zum Ausprobieren
+Jar-Datei herunterladen und starten, im Hilfemenü den Beipsielcode einfügen und diesen dann über das Compilermenü ausführen.
+Mit dem Robotermenü kann man ein bisschen spielen - die Keycodes (Buchstaben) funktionieren, wenn die Zeichenfläche den Focus hat (anklicken)
+
+## Befehlsübersicht
 Befehle/Anweisungen: 
 * Schritt
 * LinksDrehen
