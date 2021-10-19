@@ -12,38 +12,37 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Arrays;
 
-
-
 /**
- * Diese Klasse stellt den Controller zwischen dem Lexer,Parser,Compiler,Iinterpreter und dem View
- * (grafische Oberfläche) dar
+ * Diese Klasse stellt den Controller zwischen dem
+ * Lexer,Parser,Compiler,Iinterpreter und dem View (grafische Oberfläche) dar
  * 
  * @author Peter Scholl (peter.scholl@aeg-online.de)
  *
  */
 public class MyKaController {
 	public static String curfilename = "";
-	public static final int Schritt = 1;		//Roboter geht einen Schritt vorwärts
-	public static final int LinksDrehen = 2;	//Roboter dreht sich nach links
-	public static final int RechtsDrehen = 3;	//Roboter dreht sich nach rechts
-	public static final int Hinlegen = 4;		//Roboter legt einen Ziegel ab
-	public static final int Aufheben = 5;		//Roboter hebt einen Ziegel auf
-	public static final int MarkeSetzen = 6;	//Roboter setzt eine Marke
-	public static final int MarkeLoeschen = 7;	//Roboter entfernt eine Marke
-	public static final int FileLesen = 10;		//Datei einlesen
-	public static final int FileSpeichern = 11; //Datei speichern
-	public static final int SetWorld = 12;		//Welt ändern! länge,breite,hoehe
-	public static final int Lexen = 20; 		//Lexen
-	public static final int Parsen = 21; 		//Parsen
-	public static final int Execute = 22;		//Programm ausführen
-	public static final int RBefehl = 30; 		//RoboterBefehl in args ausführen
-	private int imagewidth,imageheight;
+	public static final int Schritt = 1; // Roboter geht einen Schritt vorwärts
+	public static final int LinksDrehen = 2; // Roboter dreht sich nach links
+	public static final int RechtsDrehen = 3; // Roboter dreht sich nach rechts
+	public static final int Hinlegen = 4; // Roboter legt einen Ziegel ab
+	public static final int Aufheben = 5; // Roboter hebt einen Ziegel auf
+	public static final int MarkeSetzen = 6; // Roboter setzt eine Marke
+	public static final int MarkeLoeschen = 7; // Roboter entfernt eine Marke
+	public static final int FileLesen = 10; // Datei einlesen
+	public static final int FileSpeichern = 11; // Datei speichern
+	public static final int SetWorld = 12; // Welt ändern! länge,breite,hoehe
+	public static final int SetRobPos = 13; // Position des Roboters verändern
+	public static final int Lexen = 20; // Lexen
+	public static final int Parsen = 21; // Parsen
+	public static final int Execute = 22; // Programm ausführen
+	public static final int RBefehl = 30; // RoboterBefehl in args ausführen
+	private int imagewidth, imageheight;
 	private RobotArea robotArea = new RobotArea();
 	private MyKaView view = null;
 	private static Image imgZiegel;
 	private static Image[] imgRobs = new Image[4];
-	private boolean debug = true,lexed=false,parsed=false;
-	private List<Token> curTokenList= null;
+	private boolean debug = true, lexed = false, parsed = false;
+	private List<Token> curTokenList = null;
 	private Token[] curTokenArray = null;
 	private boolean enableInput = true;
 	private static MyKaController controller = null;
@@ -55,7 +54,7 @@ public class MyKaController {
 		c.init();
 		c.robotZeichnen();
 	}
-	
+
 	public static MyKaController getController() {
 		if (controller == null) {
 			controller = new MyKaController();
@@ -68,30 +67,30 @@ public class MyKaController {
 	 */
 	private MyKaController() {
 	}
-	
+
 	public void init() {
 		Toolkit kit = Toolkit.getDefaultToolkit();
 		File aktfile = new File("./bilder/Ziegel.png");
-		//file_ziegel = chooseFile(true);
+		// file_ziegel = chooseFile(true);
 		if (aktfile.exists()) {
 			imgZiegel = kit.getImage(aktfile.getAbsolutePath());
-			//System.out.println("Bild hoehe:"+imgZiegel.getHeight(imgobs));
+			// System.out.println("Bild hoehe:"+imgZiegel.getHeight(imgobs));
 		} else {
 			System.out.println("File does not exist");
 		}
 		aktfile = new File("./bilder/robotN.png");
-		imgRobs[RobotArea.DIR_NORTH] = kit.getImage(aktfile.getAbsolutePath()); 
+		imgRobs[RobotArea.DIR_NORTH] = kit.getImage(aktfile.getAbsolutePath());
 		aktfile = new File("./bilder/robotW.png");
-		imgRobs[RobotArea.DIR_WEST] = kit.getImage(aktfile.getAbsolutePath()); 
+		imgRobs[RobotArea.DIR_WEST] = kit.getImage(aktfile.getAbsolutePath());
 		aktfile = new File("./bilder/robotE.png");
-		imgRobs[RobotArea.DIR_EAST] = kit.getImage(aktfile.getAbsolutePath()); 
+		imgRobs[RobotArea.DIR_EAST] = kit.getImage(aktfile.getAbsolutePath());
 		aktfile = new File("./bilder/robotS.png");
-		imgRobs[RobotArea.DIR_SOUTH] = kit.getImage(aktfile.getAbsolutePath()); 
-		//TODO: Bessere Lösung finden als diesen Kniff!!
-		for (int i=0;i<4;i++) {
+		imgRobs[RobotArea.DIR_SOUTH] = kit.getImage(aktfile.getAbsolutePath());
+		// TODO: Bessere Lösung finden als diesen Kniff!!
+		for (int i = 0; i < 4; i++) {
 			robotArea.turnLeft();
 			robotZeichnen();
-			debug(""+robotArea);
+			debug("" + robotArea);
 		}
 		robotArea.ablegen();
 		robotZeichnen();
@@ -106,7 +105,7 @@ public class MyKaController {
 			return;
 		}
 		writeStatus(" ");
-		int result = 0; //Für die Rückmeldungen von Befehlen 
+		int result = 0; // Für die Rückmeldungen von Befehlen
 		switch (command) {
 		case FileLesen:
 			File file = Dateiaktionen.chooseFileToRead();
@@ -121,12 +120,12 @@ public class MyKaController {
 			break;
 		case SetWorld:
 			int[] v = new int[3];
-			if (args.length==3) {
+			if (args.length == 3) {
 				try {
 					v[0] = Integer.parseInt(args[0]);
 					v[1] = Integer.parseInt(args[1]);
 					v[2] = Integer.parseInt(args[2]);
-					robotArea=new RobotArea(v[0], v[1], v[2], 0, 0);
+					robotArea = new RobotArea(v[0], v[1], v[2], 0, 0);
 					robotZeichnen();
 				} catch (Exception ex) {
 					writeStatus("Keine drei Zahlen für Spielfeldgröße!");
@@ -135,6 +134,18 @@ public class MyKaController {
 				writeStatus("Keine drei zahlen für Spielfeldgröße!");
 			}
 
+			break;
+		case SetRobPos:
+			try {
+				if (robotArea.setRobotPos(Integer.parseInt(args[0]),
+						Integer.parseInt(args[1])) == RobotArea.RET_SUCCESS) {
+					robotZeichnen();
+				} else {
+					writeStatus("Roboterposition ungueltig: " + args);
+				}
+			} catch (Exception ex) {
+				writeStatus("Roboterposition ungueltig: " + args);
+			}
 			break;
 		case Schritt:
 			result = robotArea.forward();
@@ -173,8 +184,8 @@ public class MyKaController {
 			break;
 		case Lexen:
 			curTokenList = Lexer.lex(args[0]);
-			writeStatus("Lexing result: "+Lexer.getStatusText());
-			if (Lexer.getStatus()==0) {
+			writeStatus("Lexing result: " + Lexer.getStatusText());
+			if (Lexer.getStatus() == 0) {
 				lexed = true;
 				view.setEnableParse(true);
 				parsed = false;
@@ -184,7 +195,7 @@ public class MyKaController {
 		case Parsen:
 			if (lexed) {
 				Parser.parse(curTokenArray);
-				writeStatus("Parsing result: "+Parser.getFehlerText());
+				writeStatus("Parsing result: " + Parser.getFehlerText());
 				if (Parser.getFehlerText().equals("Success!!")) {
 					parsed = true;
 					view.setEnableExec(true);
@@ -192,8 +203,8 @@ public class MyKaController {
 			} else {
 				writeStatus("Lexing first...");
 				sleep(400); // 400ms Pause
-				execute(Lexen,new String[] {view.getSRCAreaText()});
-				if(lexed) {
+				execute(Lexen, new String[] { view.getSRCAreaText() });
+				if (lexed) {
 					execute(Parsen, null);
 				} else {
 					writeStatus("Parsing not passible ... Lexing failed");
@@ -204,44 +215,47 @@ public class MyKaController {
 			if (!parsed) {
 				writeStatus("Parsing first");
 				sleep(100);
-				execute(Parsen,null);
+				execute(Parsen, null);
 			}
 			if (parsed) {
 				writeStatus("Executing...");
 				view.setEnabledAll(false);
-				Executor ex = new Executor(curTokenArray);
-				ex.start();
-				debug("Thread running?!");
-				writeStatus("Executing...running!");
-				//Input is enabled after execution is done
+				Executor ex = Executor.getInstance(curTokenArray);
+				try {
+					ex.start();
+					writeStatus("Executing...running!");
+				} catch (Exception ex1) {
+					writeStatus("Starting tooo fast!!");
+				}
+				// Input is re-enabled after execution is done
 			} else {
 				writeStatus("Execution without parsing not passible!");
 			}
 			break;
 		case RBefehl:
-			if (args!=null && args.length>0) {
+			if (args != null && args.length > 0) {
 				String befehl = args[0];
-				switch(befehl) {
+				switch (befehl) {
 				case "Schritt":
-					execute(Schritt,null);
+					execute(Schritt, null);
 					break;
 				case "LinksDrehen":
-					execute(LinksDrehen,null);
+					execute(LinksDrehen, null);
 					break;
 				case "RechtsDrehen":
-					execute(RechtsDrehen,null);
+					execute(RechtsDrehen, null);
 					break;
 				case "Hinlegen":
-					execute(Hinlegen,null);
+					execute(Hinlegen, null);
 					break;
 				case "Aufheben":
-					execute(Aufheben,null);
+					execute(Aufheben, null);
 					break;
 				case "MarkeSetzen":
-					execute(MarkeSetzen,null);
+					execute(MarkeSetzen, null);
 					break;
 				case "MarkeLöschen":
-					execute(MarkeLoeschen,null);
+					execute(MarkeLoeschen, null);
 					break;
 				case "IstWand":
 					Interpreter.setResult(robotArea.istWand());
@@ -262,7 +276,7 @@ public class MyKaController {
 					Interpreter.setResult(!robotArea.istZiegel());
 					break;
 				default:
-					writeStatus("Unbekannter Roboterbefehl gesendet:"+args[0]);
+					writeStatus("Unbekannter Roboterbefehl gesendet:" + args[0]);
 				}
 			}
 			break;
@@ -273,14 +287,14 @@ public class MyKaController {
 	}
 
 	public void updateView() {
-		//TODO: Ansicht auffrischen - was muss gemacht werden?
+		// TODO: Ansicht auffrischen - was muss gemacht werden?
 		view.updateCanvas();
 	}
 
 	public void writeStatus(String text) {
 		view.setStatusLine(text);
 	}
-	
+
 	public boolean robotZeichnen() {
 		// hier soll die aktuelle Situation der RobotArea gezeichnet werden
 		if (view == null) {
@@ -293,82 +307,83 @@ public class MyKaController {
 		if (img.getWidth() != imagewidth || img.getHeight() != imageheight) {
 			imagewidth = img.getWidth();
 			imageheight = img.getHeight();
-			//TODO updateImgValues(); //Werte fuer den Roboter aktualisieren
+			// TODO updateImgValues(); //Werte fuer den Roboter aktualisieren
 		}
 		g.setColor(Color.black);
-		g.drawLine(0,0,	0,imageheight); //Rechte begrenzungslinie zur TextArea
-		//Position der hinteren, linken, unteren Ecke berechnen
+		g.drawLine(0, 0, 0, imageheight); // Rechte begrenzungslinie zur TextArea
+		// Position der hinteren, linken, unteren Ecke berechnen
 		int w = robotArea.getWidth();
 		int l = robotArea.getLength();
 		int h = robotArea.getHeight();
-		int mitte_canvas_x = imagewidth/2;
-		int mitte_canvas_y = imageheight/2;
-		int ursprung_x = mitte_canvas_x-(30*robotArea.getWidth()-15*robotArea.getLength())/2;
-		int ursprung_y = mitte_canvas_y-(15*robotArea.getLength()-15*robotArea.getHeight())/2;
-		ursprung_x = (ursprung_x<15*robotArea.getLength()+20)?15*robotArea.getLength()+20:ursprung_x;
-		ursprung_y = (ursprung_y<15*robotArea.getHeight()+60)?15*robotArea.getHeight()+60:ursprung_y;
-		//Boden zeichnen
+		int mitte_canvas_x = imagewidth / 2;
+		int mitte_canvas_y = imageheight / 2;
+		int ursprung_x = mitte_canvas_x - (30 * robotArea.getWidth() - 15 * robotArea.getLength()) / 2;
+		int ursprung_y = mitte_canvas_y - (15 * robotArea.getLength() - 15 * robotArea.getHeight()) / 2;
+		ursprung_x = (ursprung_x < 15 * robotArea.getLength() + 20) ? 15 * robotArea.getLength() + 20 : ursprung_x;
+		ursprung_y = (ursprung_y < 15 * robotArea.getHeight() + 60) ? 15 * robotArea.getHeight() + 60 : ursprung_y;
+		// Boden zeichnen
 		g.setColor(Color.blue);
-		for (int i=0; i<=l; i++) { //y-Schritte - Linien in Richtung y-Achse li-re
-			g.drawLine(ursprung_x-i*15, ursprung_y+i*15, ursprung_x-i*15+30*w,ursprung_y+i*15);
+		for (int i = 0; i <= l; i++) { // y-Schritte - Linien in Richtung y-Achse li-re
+			g.drawLine(ursprung_x - i * 15, ursprung_y + i * 15, ursprung_x - i * 15 + 30 * w, ursprung_y + i * 15);
 		}
-		for (int i=0; i<=w; i++) { //x-Schritte - Linien in Richtung x-Achse vo-hi
-			g.drawLine(ursprung_x+i*30, ursprung_y, ursprung_x+i*30-15*l,ursprung_y+l*15);
+		for (int i = 0; i <= w; i++) { // x-Schritte - Linien in Richtung x-Achse vo-hi
+			g.drawLine(ursprung_x + i * 30, ursprung_y, ursprung_x + i * 30 - 15 * l, ursprung_y + l * 15);
 		}
-		//Rueckwand und Seitenwand
+		// Rueckwand und Seitenwand
 		Graphics2D g2d = (Graphics2D) g;
 		Stroke orig = g2d.getStroke();
-		Stroke dotted = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {4,2,8,2}, 0);
+		Stroke dotted = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] { 4, 2, 8, 2 },
+				0);
 		g2d.setStroke(dotted);
-		for (int i=0; i<=w; i++) { //x-Schritte - Linien in Richtung z-Achse 
-			g2d.drawLine(ursprung_x+i*30, ursprung_y, ursprung_x+i*30,ursprung_y-h*15);
+		for (int i = 0; i <= w; i++) { // x-Schritte - Linien in Richtung z-Achse
+			g2d.drawLine(ursprung_x + i * 30, ursprung_y, ursprung_x + i * 30, ursprung_y - h * 15);
 		}
-		for (int i=0; i<=l; i++) { //x-Schritte - Linien in Richtung z-Achse
-			g2d.drawLine(ursprung_x-i*15, ursprung_y+i*15, ursprung_x-i*15,ursprung_y+i*15-h*15);
+		for (int i = 0; i <= l; i++) { // x-Schritte - Linien in Richtung z-Achse
+			g2d.drawLine(ursprung_x - i * 15, ursprung_y + i * 15, ursprung_x - i * 15, ursprung_y + i * 15 - h * 15);
 		}
-		//obere  Kanten
-			g2d.drawLine(ursprung_x, ursprung_y-h*15, ursprung_x+w*30,ursprung_y-h*15);
-			g2d.drawLine(ursprung_x, ursprung_y-h*15, ursprung_x-l*15,ursprung_y-h*15+l*15);
+		// obere Kanten
+		g2d.drawLine(ursprung_x, ursprung_y - h * 15, ursprung_x + w * 30, ursprung_y - h * 15);
+		g2d.drawLine(ursprung_x, ursprung_y - h * 15, ursprung_x - l * 15, ursprung_y - h * 15 + l * 15);
 		g2d.setStroke(orig);
-		
-		//Ziegel und Roboter zeichnen
+
+		// Ziegel und Roboter zeichnen
 		int[] r_pos = robotArea.getRobotPos();
-		for (int i=0; i<l; i++) { //Reihen durchgehen
-			for (int j=0; j<w; j++) { //Spalten durchgehen
+		for (int i = 0; i < l; i++) { // Reihen durchgehen
+			for (int j = 0; j < w; j++) { // Spalten durchgehen
 				int anz_z = robotArea.getZiegelCount(j, i);
 				int akt_h = 0;
 				while (anz_z > 0) {
-					g.drawImage(imgZiegel, ursprung_x+j*30-15-i*15,ursprung_y+i*15-15-akt_h,null);
-					akt_h+=15;
+					g.drawImage(imgZiegel, ursprung_x + j * 30 - 15 - i * 15, ursprung_y + i * 15 - 15 - akt_h, null);
+					akt_h += 15;
 					anz_z--;
 				}
 				if (robotArea.getMark(j, i)) {
-					//gelbe Markierung zeichnen
+					// gelbe Markierung zeichnen
 					Polygon p = new Polygon();
-					p.addPoint(ursprung_x+j*30-i*15,ursprung_y+i*15-akt_h);
-					p.addPoint(ursprung_x+j*30+30-i*15,ursprung_y+i*15-akt_h);
-					p.addPoint(ursprung_x+j*30+15-i*15,ursprung_y+i*15+15-akt_h);
-					p.addPoint(ursprung_x+j*30-15-i*15,ursprung_y+i*15+15-akt_h);
+					p.addPoint(ursprung_x + j * 30 - i * 15, ursprung_y + i * 15 - akt_h);
+					p.addPoint(ursprung_x + j * 30 + 30 - i * 15, ursprung_y + i * 15 - akt_h);
+					p.addPoint(ursprung_x + j * 30 + 15 - i * 15, ursprung_y + i * 15 + 15 - akt_h);
+					p.addPoint(ursprung_x + j * 30 - 15 - i * 15, ursprung_y + i * 15 + 15 - akt_h);
 					g.setColor(Color.yellow);
 					g.fillPolygon(p);
 				}
-				if (r_pos[0]==j && r_pos[1]==i) { // Roboter zeichnen
-					debug("Roboter bei "+j+"-"+i);
-					g.drawImage(imgRobs[robotArea.getDir()], ursprung_x+j*30-15-i*15,ursprung_y+i*15-15-akt_h-45,null);
+				if (r_pos[0] == j && r_pos[1] == i) { // Roboter zeichnen
+					debug("Roboter bei " + j + "-" + i);
+					g.drawImage(imgRobs[robotArea.getDir()], ursprung_x + j * 30 - 15 - i * 15,
+							ursprung_y + i * 15 - 15 - akt_h - 45, null);
 				}
 			}
 		}
 		g.setColor(Color.black);
-		g.drawLine(1,0,	1,imageheight); //Rechte begrenzungslinie zur TextArea
-		
+		g.drawLine(1, 0, 1, imageheight); // Rechte begrenzungslinie zur TextArea
+
 		view.updateCanvas();
 		return true;
 	}
-	
-	
+
 	private void debug(String text) {
 		if (debug) {
-			System.out.println("C:"+text);
+			System.out.println("C:" + text);
 		}
 	}
 
@@ -377,14 +392,14 @@ public class MyKaController {
 	}
 
 	public void enableInput() {
-		enableInput=true;
-		view.setEnabledAll(true);		
+		enableInput = true;
+		view.setEnabledAll(true);
 	}
 
 	public void textChanged() {
 		lexed = false;
 		view.setEnableParse(false);
-		parsed = false;		
+		parsed = false;
 	}
 
 	public void sleep(int i) {
@@ -392,9 +407,7 @@ public class MyKaController {
 			Thread.sleep(i);
 		} catch (InterruptedException e) {
 			debug("sleep failed ?!");
-		}		
+		}
 	}
-
-
 
 }

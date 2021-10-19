@@ -186,7 +186,11 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem mykaPositionEintrag = new JMenuItem("Roboterposition");
 		mykaPositionEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//TODO: Roboterposition festlegen
+				//Roboterposition festlegen
+				String ans = Hilfsfunktionen.stringErfragen("Gib die Position des Roboters ein\n"+
+				"(x,y)", "Roboter versetzen", "0,0");
+				String[] ansa = ans.split(",");
+				controller.execute(MyKaController.SetRobPos, ansa);
 			}
 		});
 		einstellungmenue.add(mykaPositionEintrag);

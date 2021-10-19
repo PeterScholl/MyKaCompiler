@@ -179,7 +179,7 @@ public class RobotArea {
 	 * @param y
 	 */
 	public int setRobotPos(int x, int y) {
-		if (x<0 || x>=width || y<0 || y>=length) return RET_ERROR;
+		if (!isInside(x, y)) return RET_ERROR;
 		rob_x=x;
 		rob_y=y;
 		return RET_SUCCESS;
@@ -320,9 +320,9 @@ public class RobotArea {
 	public String toString() {
 		String out =  "RobotArea [width=" + width + ", length=" + length + ", height=" + height + ", rob_x=" + rob_x
 				+ ", rob_y=" + rob_y + ", dir=" + dir + "]\n";
-		for (int i=0; i<ziegel.length; i++) {
-			for (int j=0; j<ziegel[0].length; j++) {
-				out+=""+ziegel[i][j]+" ";
+		for (int i=0; i<ziegel[0].length; i++) {
+			for (int j=0; j<ziegel.length; j++) {
+				out+=""+ziegel[j][i]+" ";
 			}
 			out+="\n";
 		}
