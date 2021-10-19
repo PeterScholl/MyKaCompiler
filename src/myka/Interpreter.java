@@ -85,8 +85,9 @@ public class Interpreter {
 			Token akt = tokenliste[curpos];
 			while(!akt.getWert().equals("endewenn") && !akt.getWert().equals("sonst") && !fail ) {
 				executeToken();
+				akt = tokenliste[curpos];
 			}
-			if (akt.getWert().equals("sonst")) vorlaufPassendes("endewenn");			
+			if (akt.getWert().equals("sonst")) vorlaufPassendes("endewenn");
 		} else { //Bedingung ist falsch
 			vorlaufPassendes("sonst","endewenn");
 			if (tokenliste[curpos].getWert().equals("sonst")) { //ausführen

@@ -70,7 +70,7 @@ public class Lexer {
 	private static Token generateTokenFromString(String text) {
 		debug("in generateTokenFromString: " + text);
 		if (tokentyp == Z_Alpha) {
-			String[] conditions = new String[] { "IstWand", "NichtIstWand", "IstZiegel", "NichtIstZiegel" };
+			String[] conditions = new String[] { "IstWand", "NichtIstWand", "IstMarke", "NichtIstMarke", "IstZiegel", "NichtIstZiegel" };
 			String[] moves = new String[] { "Schritt", "LinksDrehen", "RechtsDrehen", "Hinlegen", "Aufheben",
 					"MarkeSetzen", "MarkeLöschen" };
 			String[] control = new String[] { "wiederhole", "mal", "solange", "endewiederhole", "wenn", "dann", "sonst",
@@ -108,6 +108,10 @@ public class Lexer {
 	 */
 	private static boolean lexstep(char c) {
 		debug("Lexing char: " + c + " Zustand: " + zustand);
+		if (c == '\n') {
+			aktzeile++;
+			zeilenpos = pos;
+		}
 		switch (zustand) {
 		case Z_Trenner: // Noch kein neues Terminal begonnen
 			if (isZiffer(c)) {
@@ -117,10 +121,6 @@ public class Lexer {
 				zustand = Z_Alpha;
 				terminalstring = "" + c;
 			} else if (isTrenner(c)) {
-				if (c == '\n') {
-					aktzeile++;
-					zeilenpos = pos;
-				}
 			} else {
 				status = ERR_charunknown;
 				zustand = Z_Sink;
