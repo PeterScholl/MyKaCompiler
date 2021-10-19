@@ -237,7 +237,7 @@ public class RobotArea {
 	 * Ist das Feld markiert, auf dem der Roboter steht
 	 * @return true or false
 	 */
-	public boolean ismarked() {
+	public boolean istMarke() {
 		return getMark(rob_x, rob_y);
 	}
 	
@@ -245,11 +245,20 @@ public class RobotArea {
 	 * prueft, ob der Roboter vor einer Wand steht
 	 * @return true or false
 	 */
-	public boolean vorWand() {
+	public boolean istWand() {
 		int[] n = nextFeld();
 		return !isInside(n[0], n[1]);
 	}
 	
+	/**
+	 * prueft, ob vor dem Roboter mind. ein Ziegel
+	 * liegt
+	 * @return true or false
+	 */
+	public boolean istZiegel() {
+		int[] n = nextFeld();
+		return isInside(n[0], n[1]) && ziegel[n[0]][n[1]]>0;
+	}
 	
 	
 	
@@ -310,6 +319,4 @@ public class RobotArea {
 		}
 		return out;
 	}
-	
-
 }

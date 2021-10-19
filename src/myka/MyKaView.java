@@ -21,6 +21,7 @@ public class MyKaView implements MouseListener, KeyListener {
 	private JFrame fenster;
 	private JPanel center;
 	private JTextArea textareaSRC;
+	private JMenuBar menuezeile;
 	private RobotCanvas robotCanvas;
 	private JLabel upperLabel, statusLabel;
 	//private JList<String> fragenliste = new JList<String>(new String[] {});
@@ -45,7 +46,7 @@ public class MyKaView implements MouseListener, KeyListener {
 		fenster.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		// Menü erzeugen
-		JMenuBar menuezeile = new JMenuBar();
+		menuezeile = new JMenuBar();
 		fenster.setJMenuBar(menuezeile);
 
 		JMenu dateimenue = new JMenu("Datei"); // Datei-Menue
@@ -88,16 +89,15 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem parserEintrag = new JMenuItem("Parser aufrufen");
 		parserEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//ggf. vorhandene Tokenliste parsen
 				controller.execute(MyKaController.Parsen, null);
 			}
 		});
 		compmenue.add(parserEintrag);
 
-		JMenuItem interpreterEintrag = new JMenuItem("Interpreter");
+		JMenuItem interpreterEintrag = new JMenuItem("Ausführen");
 		interpreterEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//Interpreter aufrufen
+				controller.execute(MyKaController.Execute, null);
 			}
 		});
 		compmenue.add(interpreterEintrag);
@@ -539,7 +539,12 @@ public class MyKaView implements MouseListener, KeyListener {
 			System.out.println("V:" + text);
 	}
 
+	public void setEnabledAll(boolean b) {
+		debug("setEnableAll to "+b);
+		menuezeile.setEnabled(b);
+	}
 	public void updateCanvas() {
+		debug("updateCanvas!");
 		robotCanvas.update();
 		robotCanvas.repaint();
 	}

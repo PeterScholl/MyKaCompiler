@@ -13,175 +13,179 @@ package myka;
  *
  */
 public class Interpreter {
-	private static String fehlertext="";
+	private static final int MAX_REK_DEPTH = 20;
+	private static int depth = 0;
 	private static Stack<Character> keller = new Stack<Character>();
 	private static boolean debug = true;
 	private static MyKaController controller = null;
+	private static int curpos=0;
+	private static Token[] tokenliste = null;
+	private static boolean fail = false;
+	private static boolean result = true; //Result von Bedingungsanfragen
+	private static int waitms=1000; //Waiting ms after every move
 
-	public Interpreter() {
-		// TODO Auto-generated constructor stub
+	private Interpreter() { //kein Objekt wird erzeugt - statischse Klasse
 	}
 	
-	public static boolean execute(List<Token> tokenliste) {
-		fehlertext="Success!!";
+	public static void execute(Token[] tokenliste) {
+		fail = false;
+		depth = 0; //Rekursionstiefe messen
 		keller = new Stack<Character>();
 		keller.push('#'); //leerer Kellerspeicher
-		tokenliste.toFirst();
+		curpos=0;
 		controller = MyKaController.getController();
-		executeProgramm(tokenliste);
-	}
-
-	private static void executeProgramm(List<Token> tokenliste) {
-		if (tokenliste.hasAccess()) {
-			Token akt = tokenliste.getContent();
-			debug("In execute Programm mit Token:"+akt);
-			if (akt.getTyp()==Token.T_Move && keller.top()=='#') {
-				controller.execute(MyKaController.RBefehl, new String[] {akt.getWert()});
-				tokenliste.next();
-				executeProgramm(tokenliste);
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wiederhole") && keller.top()=='#') {
-				//Wiederholung begonnen
-				tokenliste.next();
-				keller.push('w'); //wiederholung eintragen
-				executeOpenWhile(tokenliste);
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wenn") && keller.top()=='#') {
-				//WennDann begonnen
-				tokenliste.next();
-				keller.push('i'); //if eintragen
-				executeOpenIf(tokenliste);
-			} else {
-				fehlertext = "Unerwartetes Token: "+akt;
-				return;
-			}
+		Interpreter.tokenliste = tokenliste;
+		while(curpos < tokenliste.length && !fail) {
+			executeToken();
+		}
+		if (fail) {
+			System.err.println("Fehler in der Ausführung!!!");
 		}
 	}
 
-	private static void executeOpenWhile(List<Token> tokenliste) {
-		Token akt = tokenliste.getContent();
-		debug("In execute OpenWhile mit Token:"+akt);
+	/**
+	 * führt das aktuelle token aus und wenn es in eine Schleife
+	 * oder Bedingung geht wird diese entsprechend rekursiv aufgerufen
+	 * Anschliessend wird zum nächsten Token gesprungen
+	 */
+	private static void executeToken() {
+		if (fail) return;
+		Token akt = tokenliste[curpos];
+		if (akt.getTyp()==Token.T_Move) {
+			controller.execute(MyKaController.RBefehl, new String[] {akt.getWert()});
+			try {
+				Thread.sleep(waitms);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		} else if (akt.getTyp()==Token.T_Cont) {
+			if (akt.getWert().equals("wiederhole")) {
+				curpos++;
+				loop();	
+			} else if (akt.getWert().equals("wenn")) {
+				curpos++;
+				bed();
+			} else { //impossible
+				fehler("Fehler - Ausführen einer nicht ausführbaren Kontrollstruktur");
+			}
+		} else { //impossible
+			fehler("Fehler - Ausführen eines nicht ausführbaren Tokens!!");
+		}
+		curpos++;
+	}
+
+
+	private static void bed() {
+		depth++;
+		if (depth>MAX_REK_DEPTH) fehler("Maximale Rekursionstiefe erreicht!");
+		if (fail) return;
+		controller.execute(MyKaController.RBefehl, new String[] {tokenliste[curpos].getWert()});
+		if (result) { //Bedingung ist wahr
+			curpos+=2; // Hinter das dann springen
+			Token akt = tokenliste[curpos];
+			while(!akt.getWert().equals("endewenn") && !akt.getWert().equals("sonst") && !fail ) {
+				executeToken();
+			}
+			if (akt.getWert().equals("sonst")) vorlaufPassendes("endewenn");			
+		} else { //Bedingung ist falsch
+			vorlaufPassendes("sonst","endewenn");
+			if (tokenliste[curpos].getWert().equals("sonst")) { //ausführen
+				curpos++; // Hinter das sonst springen
+				while(!tokenliste[curpos].getWert().equals("endewenn") && !fail) {
+					executeToken();
+				}
+			}
+		}
+		depth--;
+	}
+
+	private static void loop() {
+		depth++;
+		if (depth>MAX_REK_DEPTH) fehler("Maximale Rekursionstiefe erreicht!");
+		if (fail) return;
+		int pos = curpos; //aktuelle Position für Loop speichern
+		//Typ der Schleife bestimmen
+		Token akt = tokenliste[curpos];
 		if (akt.getTyp()==Token.T_Zahl) {
-			//Wiederhole n mal schleife
-			int anz = akt.getValue();
-			tokenliste.next();
-			akt = tokenliste.getContent();
-			if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("mal")) {
-				tokenliste.next();
-				if (!tokenliste.hasAccess()) return eofWhileParsing();
-				//hier startet die eigentliche Pruefung auf Input
-				return pruefeInWhile(tokenliste);
+			int anz = akt.getValue(); // Anzahl loops speichern
+			for (int i=0; i<anz; i++) {
+				curpos=pos+2; // mal überspringen
+				while(!tokenliste[curpos].getWert().equals("endewiederhole") && !fail) {
+					executeToken();
+				}
+			}			
+		} else if (akt.getWert().equals("solange")) {
+			curpos=pos+1; // Zur Bedingung springen und übrerprüfen
+			controller.execute(MyKaController.RBefehl, new String[] {tokenliste[curpos].getWert()});
+			while (result && !fail) { //Bedingung zutreffend
+				curpos++; //erstes ausführbares Token nach der Bedingung
+				while(!tokenliste[curpos].getWert().equals("endewiederhole") && !fail) {
+					executeToken();
+				}				
+				curpos=pos+1; // Wieder zur Bedingung springen und überprüfen
+				controller.execute(MyKaController.RBefehl, new String[] {tokenliste[curpos].getWert()});
 			}
-			fehlertext = "while ohne Wort mal";
-			return false;
-		} else {
-			fehlertext = "While schleife nicht richtig erstellt";
-			return false;
+			//Bedingung nicht mehr zutreffend
+			vorlaufPassendes("endewiederhole");			
+		} else { //impossible
+			fehler("Schleife falsch!!! - eigentlich impossible nach Parsing");
 		}
-	}
-		
-	private static boolean pruefeInWhile(List<Token> tokenliste) {
-		if (keller.top()=='#') {
-			return executeProgramm(tokenliste);
-		}
-		if (keller.top()=='i' || keller.top()=='s') {
-			return pruefeInIf(tokenliste);
-		}	
-		if (tokenliste.hasAccess()) {
-			Token akt = tokenliste.getContent();
-			debug("In pruefe InWhile mit Token:"+akt);
-			if (akt.getTyp()==Token.T_Move && keller.top()=='w') {
-				tokenliste.next();
-				return pruefeInWhile(tokenliste);
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("endewiederhole") && keller.top()=='w') {
-				//eine Wiederholung beendet
-				keller.pop(); //wiederholung aus Keller entfernen
-				tokenliste.next();
-				return pruefeInWhile(tokenliste);
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wenn")) {
-				//WennDann begonnen
-				keller.push('i'); //if eintragen
-				return executeOpenIf(tokenliste);
-			} else {
-				fehlertext = "Unerwartetes Token: "+akt;
-				return false;
-			}
-		}
-		fehlertext = "Programm endet in Schleife";
-		return false; 
-	}
-	private static boolean executeOpenIf(List<Token> tokenliste) {
-		if (!tokenliste.hasAccess()) return eofWhileParsing(); //Eigentlich ueberfluessig
-		Token akt = tokenliste.getContent();
-		debug("In pruefe OpenIf mit Token:"+akt);
-		if (akt.getTyp()==Token.T_Cond) {
-			//in Bedingung
-			tokenliste.next();
-			if (!tokenliste.hasAccess()) return eofWhileParsing();
-			akt = tokenliste.getContent();
-			if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("dann")) {
-				tokenliste.next();
-				if (!tokenliste.hasAccess()) return eofWhileParsing();
-				return pruefeInIf(tokenliste);
-			}
-			fehlertext = "if ohne dann!";
-			return false;
-		} else {
-			fehlertext = "if Abfrage nicht richtig erstellt";
-			return false;
-		}
-	}
-		
-	private static boolean pruefeInIf(List<Token> tokenliste) {
-		if (keller.top()=='#') {
-			return executeProgramm(tokenliste);
-		}
-		if (keller.top()=='w') {
-			//return false;
-			return pruefeInWhile(tokenliste);
-		}	
-		if (tokenliste.hasAccess()) {
-			Token akt = tokenliste.getContent();
-			debug("In pruefe InIf mit Token:"+akt);
-			if (akt.getTyp()==Token.T_Move) {
-				tokenliste.next();
-				return pruefeInIf(tokenliste);
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("sonst") && keller.top()=='i') {
-				//eine Bedingungsbearbeitung beendet
-				keller.pop();
-				keller.push('s');
-				tokenliste.next();
-				return pruefeInIf(tokenliste);
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("endewenn")) {
-				//eine Bedingung beendet
-				keller.pop(); //Bedingung aus Keller entfernen
-				tokenliste.next();
-				return pruefeInIf(tokenliste);
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wiederhole")) {
-				//Wiederhole begonnen
-				keller.push('w'); //if eintragen
-				return executeOpenWhile(tokenliste);
-			} else {
-				fehlertext = "Unerwartetes Token: "+akt;
-				return false;
-			}
-		}
-		fehlertext = "Programm endet in If-Anweisung";
-		return false; 
+		depth--;
 	}
 
-
-	private static boolean eofWhileParsing() {
-		fehlertext = "Reached End Of File while parsing";
-		return false;
+	/**
+	 * durchläuft die Tokenliste so lange bis das Token mit dem 
+	 * gesuchten Wert gefunden ist. Bei wiederhole bzw. wenn wird
+	 * zunaechst das dazu passende Ende gesucht.
+	 * @param string1 - zu suchender Wert
+	 */
+	private static void vorlaufPassendes(String string) {
+		vorlaufPassendes(string,null);
+	}
+	private static void vorlaufPassendes(String string1, String oder) {
+		if (fail) return;
+		depth++;
+		if (depth>MAX_REK_DEPTH) {
+			System.err.println("Maximale Rekursionstiefe erreicht!");
+			return;
+		}
+		while (!tokenliste[curpos].getWert().equals(string1) && !tokenliste[curpos].getWert().equals(oder) ) {
+			curpos++;
+			Token akt = tokenliste[curpos];
+			if (akt.getTyp()==Token.T_Cont) {
+				if (akt.getWert().equals("wenn")) {
+					vorlaufPassendes("endewenn");
+				} else if (akt.getWert().equals("wiederhole")) {
+					vorlaufPassendes("endewiederhole");					
+				}
+			}
+		}
+		depth--;		
 	}
 
-	public static String getFehlerText() {
-		return fehlertext;
+	public static boolean getFail() {
+		return fail;
+	}
+
+	public static void setResult(boolean res) {
+		result=res;
 	}
 	
 	private static void debug(String text) {
 		if (debug) System.out.println("P:"+text);
 	}
 	
+	private static void fehler(String text) {
+		text+=" Pos:"+curpos;
+		if (curpos<tokenliste.length) {
+			text+=": "+tokenliste[curpos];
+		}
+		System.err.println(text);
+		fail = true;
+	}
 	
+	public static void setWaitTime(int ms) {
+		waitms = ms;
+	}
 
 }

@@ -19,8 +19,8 @@ public class Parser {
 	private static int curpos = 0;
 	private static Token[] tokenArray = null;
 
-	public Parser() {
-		// TODO Auto-generated constructor stub
+	private Parser() {
+		// Vom Parser wird kein Objekt erzeugt - statische Klasse
 	}
 	
 	public static boolean parse(Token[] tokenliste) {
@@ -29,6 +29,7 @@ public class Parser {
 		keller.push('#'); //leerer Kellerspeicher
 		curpos = 0;
 		tokenArray = tokenliste;
+		if (tokenArray==null) return true;
 		return pruefeProgramm();
 	}
 
@@ -59,7 +60,6 @@ public class Parser {
 
 	private static boolean pruefeOpenWhile() {
 		if (!hasAccess()) return eofWhileParsing(); //Eigentlich ueberfluessig
-		int startwhilenr = curpos-1;
 		Token akt = tokenArray[curpos];
 		debug("In pruefe OpenWhile mit Token:"+akt);
 		if (akt.getTyp()==Token.T_Zahl) {
@@ -72,9 +72,6 @@ public class Parser {
 				if (!hasAccess()) return eofWhileParsing();
 				//hier startet die eigentliche Pruefung auf Input
 				boolean result = pruefeInWhile();
-				int endwhilenr = curpos-1;
-				debug("While von "+startwhilenr+":"+tokenArray[startwhilenr]);
-				debug("While von "+endwhilenr+":"+tokenArray[endwhilenr]);
 				return result;
 			}
 			fehlertext = "while ohne Wort mal";
@@ -122,6 +119,11 @@ public class Parser {
 				keller.push('i'); //if eintragen
 				curpos++;
 				return pruefeOpenIf();
+			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wiederhole")) {
+				//Neue Schleife begonnen
+				keller.push('w'); //schleife eintragen
+				curpos++;
+				return pruefeOpenWhile();
 			} else {
 				fehlertext = "Unerwartetes Token: "+akt;
 				return false;

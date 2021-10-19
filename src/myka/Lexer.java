@@ -13,6 +13,9 @@ public class Lexer {
 	private static int status = STAT_GOOD;
 	private static int zustand = Z_Trenner;
 	private static int tokentyp = 0;
+	private static int aktzeile = 0;
+	private static int pos = 0;
+	private static int zeilenpos = 0;
 	private static String terminalstring = "";
 	private static final boolean debug = false;
 
@@ -40,14 +43,17 @@ public class Lexer {
 		text += " ";
 		zustand = 0;
 		status = STAT_GOOD;
-		int pos = 0;
+		aktzeile = 1; //Wir beginnen in Zeile 1
+		pos = 0;
 		while (status == STAT_GOOD && pos<text.length()) { // go on lexing
 			if (lexstep(text.charAt(pos++))) { //token muss gebildet werden
 				//Token erzeugen und an die Liste anhaengen
 				Token t = generateTokenFromString(terminalstring);
 				debug("Token generiert: "+t);
-				terminalstring =""; //String zuruecksetzen
-				tokenlist.append(t);
+				if (t!=null) {
+					terminalstring =""; //String zuruecksetzen
+					tokenlist.append(t);
+				}
 			}
 		}
 		if (status!=STAT_GOOD) return null;
@@ -58,8 +64,8 @@ public class Lexer {
 		debug("in generateTokenFromString: "+text);
 		if (tokentyp == Z_Alpha) {
 			String[] conditions = new String[] {"IstWand","NichtIstWand","IstZiegel","NichtIstZiegel"};
-			String[] moves = new String[] {"Schritt", "DreheLinks", "DreheRechts", "Hinlegen", "Aufheben", "MarkeSetzen","MarkeLöschen" };
-			String[] control = new String[] {"wiederhole","mal","endewiederhole","wenn","dann","sonst","endewenn","Beenden"};
+			String[] moves = new String[] {"Schritt", "LinksDrehen", "RechtsDrehen", "Hinlegen", "Aufheben", "MarkeSetzen","MarkeLöschen" };
+			String[] control = new String[] {"wiederhole","mal","solange","endewiederhole","wenn","dann","sonst","endewenn","Beenden"};
 			for (int i=0; i<moves.length; i++) {
 				debug("Vergleiche mit "+moves[i]);
 				if (text.equals(moves[i])) {
@@ -101,6 +107,10 @@ public class Lexer {
 				zustand = Z_Alpha;
 				terminalstring = ""+c;
 			} else if (isTrenner(c)) {
+				if (c=='\n') {
+					aktzeile++;
+					zeilenpos = pos;
+				}
 			} else {
 				status = ERR_charunknown;
 				zustand = Z_Sink;
@@ -159,19 +169,28 @@ public class Lexer {
 	}
 
 	public static String getStatus() {
+		String fehlertext ="";
 		switch(status) {
 		case STAT_GOOD:
-			return "Lexing Fehlerfrei";
+			fehlertext = "Lexing Fehlerfrei";
+			break;
 		case ERR_char_in_number:
-			return "Lexing fehlerhaft: Zeichen in einer Zahl";
+			fehlertext =  "Lexing fehlerhaft: Zeichen in einer Zahl";
+			break;
 		case ERR_charunknown:
-			return "Lexing fehlerhaft: Unbekanntes Zeichen";
+			fehlertext = "Lexing fehlerhaft: Unbekanntes Zeichen";
+			break;
 		case ERR_number_in_word:
-			return "Lexing fehlerhaft: Ziffer innerhalb eines Wortes";
+			fehlertext =  "Lexing fehlerhaft: Ziffer innerhalb eines Wortes";
+			break;
 		case ERR_terminal_unknown:
-			return "Lexing fehlerhaft: Unbekanntes Schluesselwort (Terminal)";
+			fehlertext = "Lexing fehlerhaft: Unbekanntes Schluesselwort (Terminal): "+terminalstring;
+			break;
 		}
-		return null;
+		if (status != STAT_GOOD) {
+			fehlertext += "Zeile: "+aktzeile+" Pos: "+(pos-zeilenpos);
+		}
+		return fehlertext;
 	}
 
 }

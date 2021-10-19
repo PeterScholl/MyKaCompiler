@@ -42,9 +42,9 @@ public class MyKaController {
 	private static Image imgZiegel;
 	private static Image[] imgRobs = new Image[4];
 	private boolean debug = true;
-	private MyImgObserver imgobs = new MyImgObserver(this);
 	private List<Token> curTokenList= null;
 	private Token[] curTokenArray = null;
+	private boolean enableInput = true;
 	private static MyKaController controller = null;
 
 	public static void main(String[] args) {
@@ -100,8 +100,12 @@ public class MyKaController {
 	}
 
 	public void execute(int command, String[] args) {
-		writeStatus("");
-		int result = 0;
+		if (!enableInput) {
+			writeStatus("Input currently disabled!!");
+			return;
+		}
+		writeStatus(" ");
+		int result = 0; //Für die Rückmeldungen von Befehlen 
 		switch (command) {
 		case FileLesen:
 			File file = Dateiaktionen.chooseFileToRead();
@@ -155,9 +159,65 @@ public class MyKaController {
 			curTokenArray = Hilfsfunktionen.convertTokenListToArray(curTokenList);
 			break;
 		case Parsen:
-			//TODO: Parser aufrufen
 			Parser.parse(curTokenArray);
 			writeStatus("Parsing result: "+Parser.getFehlerText());
+			break;
+		case Execute:
+			writeStatus("Executing...");
+			view.setEnabledAll(false);
+			Executor ex = new Executor(curTokenArray);
+			ex.start();
+			debug("Thread running?!");
+			writeStatus("Executing...running!");
+			//Input is enabled after execution is done
+			break;
+		case RBefehl:
+			if (args!=null && args.length>0) {
+				String befehl = args[0];
+				switch(befehl) {
+				case "Schritt":
+					execute(Schritt,null);
+					break;
+				case "LinksDrehen":
+					execute(LinksDrehen,null);
+					break;
+				case "RechtsDrehen":
+					execute(RechtsDrehen,null);
+					break;
+				case "Hinlegen":
+					execute(Hinlegen,null);
+					break;
+				case "Aufheben":
+					execute(Aufheben,null);
+					break;
+				case "MarkeSetzen":
+					execute(MarkeSetzen,null);
+					break;
+				case "MarkeLöschen":
+					execute(MarkeLoeschen,null);
+					break;
+				case "IstWand":
+					Interpreter.setResult(robotArea.istWand());
+					break;
+				case "NichtIstWand":
+					Interpreter.setResult(!robotArea.istWand());
+					break;
+				case "IstMarke":
+					Interpreter.setResult(robotArea.istMarke());
+					break;
+				case "NichtIstMarke":
+					Interpreter.setResult(!robotArea.istMarke());
+					break;
+				case "IstZiegel":
+					Interpreter.setResult(robotArea.istZiegel());
+					break;
+				case "NichtIstZiegel":
+					Interpreter.setResult(!robotArea.istZiegel());
+					break;
+				default:
+					writeStatus("Unbekannter Roboterbefehl gesendet:"+args[0]);
+				}
+			}
 			break;
 		default:
 			System.err.println("No valid command: " + command + " with args " + Arrays.deepToString(args));
@@ -267,6 +327,11 @@ public class MyKaController {
 
 	public RobotArea getRobotArea() {
 		return robotArea;
+	}
+
+	public void enableInput() {
+		enableInput=true;
+		view.setEnabledAll(true);		
 	}
 
 
