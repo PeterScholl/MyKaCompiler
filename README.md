@@ -1,6 +1,11 @@
 # MyKaCompiler
 ![MyKaScreenShot](https://user-images.githubusercontent.com/20445926/137966829-82076940-6bf2-4121-885d-0a9e2cd12593.PNG)
 
+## Idee / Ziel
+Dieses Projekt dient in erster Linie dazu, einen Lexer und einen Parser als einfachen endlichen Automaten bzw. Kellerautomaten zu implementieren. Der Lexer erzeugt eine Tokenliste, die vom Parser auf Stimmigkeit bzgl. der Grammatik der Sprache geprüft wird. Diese Tokenliste kann dann von einem "Interpreter" in Aktionen des Roboters umgesetzt werden.
+Die Idee habe ich von der Webseite [inf-schule.de](https://www.inf-schule.de/automaten-sprachen/interpretercompiler/syntaxsemantikueberblick/einstieg_myka).
+
+## Befehlsübersich
 Befehle/Anweisungen: 
 * Schritt
 * LinksDrehen
