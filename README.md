@@ -1,4 +1,5 @@
 # MyKaCompiler
+![MyKaScreenShot](https://user-images.githubusercontent.com/20445926/137966829-82076940-6bf2-4121-885d-0a9e2cd12593.PNG)
 
 Befehle/Anweisungen: 
 * Schritt
