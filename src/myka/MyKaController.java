@@ -10,7 +10,12 @@ import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Arrays;
+
+import javax.imageio.ImageIO;
 
 /**
  * Diese Klasse stellt den Controller zwischen dem
@@ -70,25 +75,23 @@ public class MyKaController {
 	}
 
 	public void init() {
-		Toolkit kit = Toolkit.getDefaultToolkit();
-		File aktfile = new File("./bilder/Ziegel.png");
-		// file_ziegel = chooseFile(true);
-		if (aktfile.exists()) {
-			imgZiegel = kit.getImage(aktfile.getAbsolutePath());
-			// System.out.println("Bild hoehe:"+imgZiegel.getHeight(imgobs));
-		} else {
-			System.out.println("File does not exist");
+		try {
+			InputStream y = getClass().getResourceAsStream("img/Ziegel.png");
+			imgZiegel = ImageIO.read(y);
+			y = getClass().getResourceAsStream("img/robotN.png");
+			imgRobs[RobotArea.DIR_NORTH] = ImageIO.read(y);
+			y = getClass().getResourceAsStream("img/robotS.png");
+			imgRobs[RobotArea.DIR_SOUTH] = ImageIO.read(y);
+			y = getClass().getResourceAsStream("img/robotE.png");
+			imgRobs[RobotArea.DIR_EAST] = ImageIO.read(y);
+			y = getClass().getResourceAsStream("img/robotW.png");
+			imgRobs[RobotArea.DIR_WEST] = ImageIO.read(y);
+		} catch (Exception e) {
+			System.err.println("Could not load Images!!");
+			System.exit(-1);
 		}
-		aktfile = new File("./bilder/robotN.png");
-		imgRobs[RobotArea.DIR_NORTH] = kit.getImage(aktfile.getAbsolutePath());
-		aktfile = new File("./bilder/robotW.png");
-		imgRobs[RobotArea.DIR_WEST] = kit.getImage(aktfile.getAbsolutePath());
-		aktfile = new File("./bilder/robotE.png");
-		imgRobs[RobotArea.DIR_EAST] = kit.getImage(aktfile.getAbsolutePath());
-		aktfile = new File("./bilder/robotS.png");
-		imgRobs[RobotArea.DIR_SOUTH] = kit.getImage(aktfile.getAbsolutePath());
 		// TODO: Bessere Lösung finden als diesen Kniff!!
-		debug("Kniff!");
+		/*debug("Kniff!");
 		for (int i = 0; i < 4; i++) {
 			robotArea.turnLeft();
 			robotZeichnen();
@@ -98,7 +101,7 @@ public class MyKaController {
 		robotZeichnen();
 		robotArea.aufnehmen();
 		robotZeichnen();
-		debug("Kniff beendet");
+		debug("Kniff beendet");*/
 		//Ende Kniff, damit alle Bilder geladen sind
 	}
 
