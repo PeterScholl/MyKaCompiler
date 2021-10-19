@@ -55,11 +55,13 @@ public class Lexer {
 			if (lexstep(text.charAt(pos++))) { // token muss gebildet werden
 				// Token erzeugen und an die Liste anhaengen
 				Token t = generateTokenFromString(terminalstring);
-				debug("Token generiert: " + t);
 				if (t != null) {
+					t.setZeile(aktzeile);
+					t.setPos(pos-zeilenpos);
 					terminalstring = ""; // String zuruecksetzen
 					tokenlist.append(t);
 				}
+				debug("Token generiert: " + t);
 			}
 		}
 		if (status != STAT_GOOD)

@@ -37,7 +37,8 @@ public class RobotArea {
 	};
 	private int width,length,height;
 	private static final int MAX_WIDTH=40,MAX_LENGTH=40,MAX_HEIGHT=10;
-	private int rob_x,rob_y;
+	private int rob_x,rob_y,rob_x_start,rob_y_start;
+	private int dir_start = DIR_SOUTH;
 	private int dir;
 	private int[][] ziegel; //Wie viele Ziegel liegen an welcher Position [width][length]
 	private boolean[][] marked; // Marke setzen
@@ -72,8 +73,12 @@ public class RobotArea {
 			rob_x=0;
 			rob_y=0;
 		}
-		this.rob_x = rob_x;
-		this.rob_y = rob_y;
+		this.rob_x_start = rob_x;
+		this.rob_y_start = rob_y;
+		reset();
+	}
+
+	public void reset() {
 		this.ziegel = new int[width][length];
 		this.marked = new boolean[width][length];
 		for (int i = 0; i<width; i++) {
@@ -82,9 +87,10 @@ public class RobotArea {
 				marked[i][j]=false;
 			}
 		}
-		this.dir=DIR_SOUTH;
+		rob_x=rob_x_start;
+		rob_y=rob_y_start;
+		this.dir=dir_start;
 	}
-
 
 	public int getWidth() {
 		return width;

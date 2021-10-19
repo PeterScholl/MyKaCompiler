@@ -91,7 +91,7 @@ public class Parser {
 			return false;
 		
 		} else {
-			fehlertext = "While schleife nicht richtig erstellt";
+			fehlertext = "While schleife nicht richtig erstellt: "+akt;
 			return false;
 		}
 	}
@@ -179,9 +179,15 @@ public class Parser {
 				keller.pop(); //Bedingung aus Keller entfernen
 				curpos++;
 				return pruefeInIf();
+			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wenn")) {
+				//WennDann begonnen
+				keller.push('i'); //if eintragen
+				curpos++;
+				return pruefeOpenIf();
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wiederhole")) {
 				//Wiederhole begonnen
-				keller.push('w'); //if eintragen
+				keller.push('w'); //wiederhole eintragen
+				curpos++;
 				return pruefeOpenWhile();
 			} else {
 				fehlertext = "Unerwartetes Token: "+akt;

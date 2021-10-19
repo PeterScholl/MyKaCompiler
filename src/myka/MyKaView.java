@@ -33,7 +33,7 @@ public class MyKaView implements MouseListener, KeyListener {
 	//private JList<String> fragenliste = new JList<String>(new String[] {});
 	private MyKaController controller = null;
 	private Font generalfont = new Font("Dialog", Font.BOLD, 16);
-	private boolean debug=true;
+	private boolean debug=false;
 	private final static String infotext = "Vorlage zum Erstellen eines Lexers und Parsers";
 
 	/**
@@ -177,8 +177,10 @@ public class MyKaView implements MouseListener, KeyListener {
 				//Feldgröße einstellen
 				String ans = Hilfsfunktionen.stringErfragen("Gib die Größe des Spielfelds ein\n"+
 				"(Länge,Breite,Höhe)", "Spielfeld erstellen", "5,5,6");
-				String[] ansa = ans.split(",");
-				controller.execute(MyKaController.SetWorld, ansa);
+				if (ans!= null) {
+					String[] ansa = ans.split(",");
+					controller.execute(MyKaController.SetWorld, ansa);
+				}
 			}
 		});
 		einstellungmenue.add(feldGroesseEintrag);
@@ -194,6 +196,14 @@ public class MyKaView implements MouseListener, KeyListener {
 			}
 		});
 		einstellungmenue.add(mykaPositionEintrag);
+
+		JMenuItem resetWorldEintrag = new JMenuItem("Welt zurücksetzen (z)");
+		resetWorldEintrag.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				controller.execute(MyKaController.ResetWorld, null);
+			}
+		});
+		einstellungmenue.add(resetWorldEintrag);
 
 		JMenuItem waitTimeEintrag = new JMenuItem("Wartezeit bei Ausführen");
 		waitTimeEintrag.addActionListener(new ActionListener() {
@@ -508,6 +518,9 @@ public class MyKaView implements MouseListener, KeyListener {
 				break;
 			case 78: //n
 				controller.execute(MyKaController.MarkeLoeschen, null);
+				break;
+			case 90: //z
+				controller.execute(MyKaController.ResetWorld, null);
 				break;
 			case 69: //e
 				controller.execute(MyKaController.Execute, null);

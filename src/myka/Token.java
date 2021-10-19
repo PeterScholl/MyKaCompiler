@@ -10,12 +10,7 @@ public class Token {
 	private int typ = T_Unknown;
 	private String wert = "";
 	private int value = 0;
-	private int whileTokenNr = 0; //Tokennummer, die das While enthält
-	private int endwhileTokenNr = 0; //Tokennummer, mit zugehoerigen endwhile
-	private int dannTokenNr = 0; //Tokennummer, die das dann enthaelt
-	private int sonstTokenNr = -1; //Tokennummer, die das sonst enthaelt
-	private int ifTokenNr = 0; //Tokennummer, die das wenn enthaelt
-	private int endifTokenNr = 0; //Tokennummer, die das endewenn enthaelt
+	private int zeile,pos; // Zeile und Position in der Zeile im Quelltext
 
 	public Token(int typ, String wert) {
 		this.typ=typ;
@@ -49,58 +44,28 @@ public class Token {
 		this.value = value;
 	}
 
-	public int getWhileTokenNr() {
-		return whileTokenNr;
+	
+	public int getZeile() {
+		return zeile;
 	}
 
-	public void setWhileTokenNr(int whileTokenNr) {
-		this.whileTokenNr = whileTokenNr;
+	public void setZeile(int zeile) {
+		this.zeile = zeile;
 	}
 
-	public int getEndwhileTokenNr() {
-		return endwhileTokenNr;
+	public int getPos() {
+		return pos;
 	}
 
-	public void setEndwhileTokenNr(int endwhileTokenNr) {
-		this.endwhileTokenNr = endwhileTokenNr;
-	}
-
-	public int getDannTokenNr() {
-		return dannTokenNr;
-	}
-
-	public void setDannTokenNr(int dannTokenNr) {
-		this.dannTokenNr = dannTokenNr;
-	}
-
-	public int getSonstTokenNr() {
-		return sonstTokenNr;
-	}
-
-	public void setSonstTokenNr(int sonstTokenNr) {
-		this.sonstTokenNr = sonstTokenNr;
-	}
-
-	public int getIfTokenNr() {
-		return ifTokenNr;
-	}
-
-	public void setIfTokenNr(int ifTokenNr) {
-		this.ifTokenNr = ifTokenNr;
-	}
-
-	public int getEndifTokenNr() {
-		return endifTokenNr;
-	}
-
-	public void setEndifTokenNr(int endifTokenNr) {
-		this.endifTokenNr = endifTokenNr;
+	public void setPos(int pos) {
+		this.pos = pos;
 	}
 
 	@Override
 	public String toString() {
-		return "Token [typ=" + typ + ", wert=" + wert + ", value=" + value + "]";
+		return "Token [typ=" + typ + ", wert=" + wert + ", value=" + value + ", zeile=" + zeile + ", pos=" + pos + "]";
 	}
+
 	
 	
 

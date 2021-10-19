@@ -32,6 +32,7 @@ public class MyKaController {
 	public static final int FileSpeichern = 11; // Datei speichern
 	public static final int SetWorld = 12; // Welt ändern! länge,breite,hoehe
 	public static final int SetRobPos = 13; // Position des Roboters verändern
+	public static final int ResetWorld = 14; //Welt auf Ausgangsposition setzen
 	public static final int Lexen = 20; // Lexen
 	public static final int Parsen = 21; // Parsen
 	public static final int Execute = 22; // Programm ausführen
@@ -146,6 +147,10 @@ public class MyKaController {
 			} catch (Exception ex) {
 				writeStatus("Roboterposition ungueltig: " + args);
 			}
+			break;
+		case ResetWorld:
+			robotArea.reset();
+			robotZeichnen();
 			break;
 		case Schritt:
 			result = robotArea.forward();

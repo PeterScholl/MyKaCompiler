@@ -51,6 +51,7 @@ public class Interpreter {
 	private static void executeToken() {
 		if (fail) return;
 		Token akt = tokenliste[curpos];
+		debug("ExecToken (Tiefe:"+depth+"): "+akt);
 		if (akt.getTyp()==Token.T_Move) {
 			controller.execute(MyKaController.RBefehl, new String[] {akt.getWert()});
 			try {
@@ -80,6 +81,7 @@ public class Interpreter {
 		if (depth>MAX_REK_DEPTH) fehler("Maximale Rekursionstiefe erreicht!");
 		if (fail) return;
 		controller.execute(MyKaController.RBefehl, new String[] {tokenliste[curpos].getWert()});
+		debug("Bedingung "+tokenliste[curpos].getWert()+" ist "+result);
 		if (result) { //Bedingung ist wahr
 			curpos+=2; // Hinter das dann springen
 			Token akt = tokenliste[curpos];
@@ -144,23 +146,24 @@ public class Interpreter {
 		vorlaufPassendes(string,null);
 	}
 	private static void vorlaufPassendes(String string1, String oder) {
-		if (fail) return;
 		depth++;
-		if (depth>MAX_REK_DEPTH) {
-			System.err.println("Maximale Rekursionstiefe erreicht!");
-			return;
-		}
+		if (depth>MAX_REK_DEPTH) fehler("Maximale Rekursionstiefe erreicht!");
+		if (fail) return;
+		debug("vorlaufPassendes "+string1+","+oder);
 		while (!tokenliste[curpos].getWert().equals(string1) && !tokenliste[curpos].getWert().equals(oder) ) {
 			curpos++;
 			Token akt = tokenliste[curpos];
 			if (akt.getTyp()==Token.T_Cont) {
 				if (akt.getWert().equals("wenn")) {
 					vorlaufPassendes("endewenn");
+					curpos++; //dies darf nicht doppelt gefunden werden
 				} else if (akt.getWert().equals("wiederhole")) {
 					vorlaufPassendes("endewiederhole");					
+					curpos++; //siehe oben - nicht doppelt finden
 				}
 			}
 		}
+		debug("vorlauf bis Token ("+curpos+"): "+tokenliste[curpos]);
 		depth--;		
 	}
 
@@ -173,7 +176,7 @@ public class Interpreter {
 	}
 	
 	private static void debug(String text) {
-		if (debug) System.out.println("P:"+text);
+		if (debug) System.out.println("I:"+text);
 	}
 	
 	private static void fehler(String text) {
