@@ -36,6 +36,7 @@ public class RobotArea {
 			"Fehler: Hat keine Markierung"
 	};
 	private int width,length,height;
+	private static final int MAX_WIDTH=40,MAX_LENGTH=40,MAX_HEIGHT=10;
 	private int rob_x,rob_y;
 	private int dir;
 	private int[][] ziegel; //Wie viele Ziegel liegen an welcher Position [width][length]
@@ -60,9 +61,17 @@ public class RobotArea {
 	 * @param rob_y y-Position
 	 */
 	public RobotArea(int width, int length, int height, int rob_x, int rob_y) {
+		if (width<2 || width > MAX_WIDTH) width = 5;
+		if (length<2 || length > MAX_LENGTH) length = 10;
+		if (height<0 || height > MAX_HEIGHT) height = 6;
+		
 		this.width = width;
 		this.length = length;
 		this.height = height;
+		if (!isInside(rob_x, rob_y)) {
+			rob_x=0;
+			rob_y=0;
+		}
 		this.rob_x = rob_x;
 		this.rob_y = rob_y;
 		this.ziegel = new int[width][length];
@@ -179,12 +188,12 @@ public class RobotArea {
 	//*********Befehle an den Roboter *******
 	 
 	public int turnLeft() {
-		dir = (dir+1)%4;
+		dir = (dir+3)%4;
 		return RET_SUCCESS;
 	}
 	
 	public int turnRight() {
-		dir = (dir+3)%4;
+		dir = (dir+1)%4;
 		return RET_SUCCESS;
 	}
 	

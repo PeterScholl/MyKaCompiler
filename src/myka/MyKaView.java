@@ -1,7 +1,12 @@
 package myka;
 
 import java.awt.*;
+import java.awt.Dialog;
+
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
@@ -21,7 +26,8 @@ public class MyKaView implements MouseListener, KeyListener {
 	private JFrame fenster;
 	private JPanel center;
 	private JTextArea textareaSRC;
-	private JMenuBar menuezeile;
+	private JMenu hilfemenue,dateimenue,compmenue,robotermenue, einstellungmenue;
+	private JMenuItem parserEintrag,interpreterEintrag;
 	private RobotCanvas robotCanvas;
 	private JLabel upperLabel, statusLabel;
 	//private JList<String> fragenliste = new JList<String>(new String[] {});
@@ -46,10 +52,10 @@ public class MyKaView implements MouseListener, KeyListener {
 		fenster.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		// Menü erzeugen
-		menuezeile = new JMenuBar();
+		JMenuBar menuezeile = new JMenuBar();
 		fenster.setJMenuBar(menuezeile);
 
-		JMenu dateimenue = new JMenu("Datei"); // Datei-Menue
+		dateimenue = new JMenu("Datei"); // Datei-Menue
 		menuezeile.add(dateimenue);
 		JMenuItem oeffnenEintrag = new JMenuItem("Programmdatei öffnen");
 		oeffnenEintrag.addActionListener(new ActionListener() {
@@ -75,7 +81,7 @@ public class MyKaView implements MouseListener, KeyListener {
 		});
 		dateimenue.add(beendenEintrag);
 
-		JMenu compmenue = new JMenu("Compiler"); // Menue für die Verarbeitung
+		compmenue = new JMenu("Compiler"); // Menue für die Verarbeitung
 		menuezeile.add(compmenue);
 		JMenuItem srcLexenEintrag = new JMenuItem("Lexer");
 		srcLexenEintrag.addActionListener(new ActionListener() {
@@ -86,7 +92,7 @@ public class MyKaView implements MouseListener, KeyListener {
 		});
 		compmenue.add(srcLexenEintrag);
 
-		JMenuItem parserEintrag = new JMenuItem("Parser aufrufen");
+		parserEintrag = new JMenuItem("Parser aufrufen");
 		parserEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				controller.execute(MyKaController.Parsen, null);
@@ -94,15 +100,16 @@ public class MyKaView implements MouseListener, KeyListener {
 		});
 		compmenue.add(parserEintrag);
 
-		JMenuItem interpreterEintrag = new JMenuItem("Ausführen");
+		interpreterEintrag = new JMenuItem("Ausführen (e)");
 		interpreterEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				controller.execute(MyKaController.Execute, null);
 			}
 		});
 		compmenue.add(interpreterEintrag);
+		setEnableParse(false);
 
-		JMenu robotermenue = new JMenu("Roboter"); // Zugriff auf den Roboter-Menue
+		robotermenue = new JMenu("Roboter"); // Zugriff auf den Roboter-Menue
 		menuezeile.add(robotermenue);
 		JMenuItem gehe = new JMenuItem("Schritt (g)");
 		gehe.addActionListener(new ActionListener() {
@@ -162,12 +169,16 @@ public class MyKaView implements MouseListener, KeyListener {
 		robotermenue.add(info);
 		
 		
-		JMenu einstellungmenue = new JMenu("Einstellungen"); // Einstellungen-Menue
+		einstellungmenue = new JMenu("Einstellungen"); // Einstellungen-Menue
 		menuezeile.add(einstellungmenue);
 		JMenuItem feldGroesseEintrag = new JMenuItem("Spielfeldgröße");
 		feldGroesseEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				//Feldgröße einstellen
+				String ans = Hilfsfunktionen.stringErfragen("Gib die Größe des Spielfelds ein\n"+
+				"(Länge,Breite,Höhe)", "Spielfeld erstellen", "5,5,6");
+				String[] ansa = ans.split(",");
+				controller.execute(MyKaController.SetWorld, ansa);
 			}
 		});
 		einstellungmenue.add(feldGroesseEintrag);
@@ -179,7 +190,27 @@ public class MyKaView implements MouseListener, KeyListener {
 			}
 		});
 		einstellungmenue.add(mykaPositionEintrag);
-		
+
+		JMenuItem waitTimeEintrag = new JMenuItem("Wartezeit bei Ausführen");
+		waitTimeEintrag.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int ms = Interpreter.getWaitTime();
+				String zeit = (String) JOptionPane.showInputDialog(null,
+	                    "Gib die Wartezeit in ms ein!","Einstellung Wartezeit",
+	                            JOptionPane.PLAIN_MESSAGE,
+	                            null,
+	                            null,
+	                            ""+ms);
+				try {
+					ms=Integer.parseInt(zeit);
+				} catch (Exception ex) {
+					debug("Keine Zahl für Wartezeit angegeben: "+zeit);
+				}
+				Interpreter.setWaitTime(ms);
+			}
+		});
+		einstellungmenue.add(waitTimeEintrag);
+
 		//TODO Hindernisse und Marken setzen
 
 		einstellungmenue.addSeparator();
@@ -202,7 +233,7 @@ public class MyKaView implements MouseListener, KeyListener {
 		});
 		einstellungmenue.add(schriftKleinerEintrag);
 		
-		JMenu hilfemenue = new JMenu("Hilfe"); // Hilfe-Menue
+		hilfemenue = new JMenu("Hilfe"); // Hilfe-Menue
 		menuezeile.add(hilfemenue);
 		JMenuItem infoEintrag = new JMenuItem("Info");
 		infoEintrag.addActionListener(new ActionListener() {
@@ -215,10 +246,24 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem srcBeispielEintrag = new JMenuItem("Beispielcode einfügen");
 		srcBeispielEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//TODO Beispiel erstellen
+				String bsp = "wiederhole 4 mal\n"
+						+ "  wiederhole solange NichtIstWand\n"
+						+ "    Hinlegen\n    Schritt\n"
+						+ "  endewiederhole\n"
+						+ "  LinksDrehen\n"
+						+ "endewiederhole\n";
+				textareaSRC.setText(bsp);
 			}
 		});
 		hilfemenue.add(srcBeispielEintrag);
+
+		JMenuItem stopEintrag = new JMenuItem("Ausführung Anhalten");
+		stopEintrag.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Interpreter.stop();
+			}
+		});
+		hilfemenue.add(stopEintrag);
 
 		JMenuItem testEintrag = new JMenuItem("Testfunktion");
 		testEintrag.addActionListener(new ActionListener() {
@@ -242,6 +287,21 @@ public class MyKaView implements MouseListener, KeyListener {
 		textareaSRC = new JTextArea();
 		textareaSRC.setLineWrap(true);
 		textareaSRC.setWrapStyleWord(false);
+		textareaSRC.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				System.out.println("insertUpdate fired!");
+				textChanged();
+			}
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				System.out.println("removeUpdate fired!");
+			}
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				System.out.println("changedUpdate fired!");
+			}   
+		});
 		new JScrollPane(textareaSRC);
 		center.add(textareaSRC);
 		// Canvas für den Roboter
@@ -271,6 +331,11 @@ public class MyKaView implements MouseListener, KeyListener {
 		fenster.setVisible(true);
 	}
 
+	protected void textChanged() {
+		//Mitteilen, dass neu geparst werden muss
+		controller.textChanged();		
+	}
+
 	/**
 	 * 'Datei oeffnen'-Funktion: Öffnet einen Dateiauswahldialog zur Auswahl einer
 	 * Logical-datei und zeigt dieses an.
@@ -293,8 +358,9 @@ public class MyKaView implements MouseListener, KeyListener {
 	}
 
 	private void testfunktion() {
-		System.out.println("Testfunktion ausführen - Focus auf Jpanel");
-		robotCanvas.requestFocus();
+		System.out.println("Testfunktion ausführen - Ausführung abbrechen");
+		Interpreter.stop();
+		controller.sleep(1000);
 	}
 
 	// ******** Von außen aufzurufende Methoden ***********//
@@ -306,6 +372,10 @@ public class MyKaView implements MouseListener, KeyListener {
 
 	public void fillSRCArea(String inhalt) {
 		textareaSRC.setText((inhalt));
+	}
+	
+	public String getSRCAreaText() {
+		return textareaSRC.getText();
 	}
 
 
@@ -435,6 +505,9 @@ public class MyKaView implements MouseListener, KeyListener {
 			case 78: //n
 				controller.execute(MyKaController.MarkeLoeschen, null);
 				break;
+			case 69: //e
+				controller.execute(MyKaController.Execute, null);
+				break;
 			case KeyEvent.VK_UP:
 				System.out.println("UP ");
 				break;
@@ -539,14 +612,30 @@ public class MyKaView implements MouseListener, KeyListener {
 			System.out.println("V:" + text);
 	}
 
-	public void setEnabledAll(boolean b) {
-		debug("setEnableAll to "+b);
-		menuezeile.setEnabled(b);
+	public void setEnabledAll(boolean bool) {
+		debug("setEnableAll to "+bool);
+		compmenue.setEnabled(bool);
+		robotermenue.setEnabled(bool);
+		einstellungmenue.setEnabled(bool);
+		for (int i = 0; i < dateimenue.getItemCount(); i++) {
+			JMenuItem c = dateimenue.getItem(i);
+			if (!c.getText().equals("Beenden"))
+				c.setEnabled(bool);
+		}
 	}
 	public void updateCanvas() {
 		debug("updateCanvas!");
 		robotCanvas.update();
 		robotCanvas.repaint();
+	}
+
+	public void setEnableParse(boolean b) {
+		parserEintrag.setEnabled(b);
+		if (!b) setEnableExec(false);
+	}
+
+	public void setEnableExec(boolean b) {
+		interpreterEintrag.setEnabled(true);
 	}
 
 }

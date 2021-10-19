@@ -74,4 +74,13 @@ public class Hilfsfunktionen {
 		}
 		return ret;		
 	}
+	
+	public static String stringErfragen(String frage, String title, String vorgabe) {
+		return (String) JOptionPane.showInputDialog(null,
+                frage,title,
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        null,
+                        vorgabe);
+	}
 }

@@ -32,6 +32,7 @@ public class MyKaController {
 	public static final int MarkeLoeschen = 7;	//Roboter entfernt eine Marke
 	public static final int FileLesen = 10;		//Datei einlesen
 	public static final int FileSpeichern = 11; //Datei speichern
+	public static final int SetWorld = 12;		//Welt ändern! länge,breite,hoehe
 	public static final int Lexen = 20; 		//Lexen
 	public static final int Parsen = 21; 		//Parsen
 	public static final int Execute = 22;		//Programm ausführen
@@ -41,7 +42,7 @@ public class MyKaController {
 	private MyKaView view = null;
 	private static Image imgZiegel;
 	private static Image[] imgRobs = new Image[4];
-	private boolean debug = true;
+	private boolean debug = true,lexed=false,parsed=false;
 	private List<Token> curTokenList= null;
 	private Token[] curTokenArray = null;
 	private boolean enableInput = true;
@@ -118,6 +119,23 @@ public class MyKaController {
 		case FileSpeichern:
 			Dateiaktionen.writeStringToFile(args[0]);
 			break;
+		case SetWorld:
+			int[] v = new int[3];
+			if (args.length==3) {
+				try {
+					v[0] = Integer.parseInt(args[0]);
+					v[1] = Integer.parseInt(args[1]);
+					v[2] = Integer.parseInt(args[2]);
+					robotArea=new RobotArea(v[0], v[1], v[2], 0, 0);
+					robotZeichnen();
+				} catch (Exception ex) {
+					writeStatus("Keine drei Zahlen für Spielfeldgröße!");
+				}
+			} else {
+				writeStatus("Keine drei zahlen für Spielfeldgröße!");
+			}
+
+			break;
 		case Schritt:
 			result = robotArea.forward();
 			robotZeichnen();
@@ -155,21 +173,50 @@ public class MyKaController {
 			break;
 		case Lexen:
 			curTokenList = Lexer.lex(args[0]);
-			writeStatus("Lexing result: "+Lexer.getStatus());
+			writeStatus("Lexing result: "+Lexer.getStatusText());
+			if (Lexer.getStatus()==0) {
+				lexed = true;
+				view.setEnableParse(true);
+				parsed = false;
+			}
 			curTokenArray = Hilfsfunktionen.convertTokenListToArray(curTokenList);
 			break;
 		case Parsen:
-			Parser.parse(curTokenArray);
-			writeStatus("Parsing result: "+Parser.getFehlerText());
+			if (lexed) {
+				Parser.parse(curTokenArray);
+				writeStatus("Parsing result: "+Parser.getFehlerText());
+				if (Parser.getFehlerText().equals("Success!!")) {
+					parsed = true;
+					view.setEnableExec(true);
+				}
+			} else {
+				writeStatus("Lexing first...");
+				sleep(400); // 400ms Pause
+				execute(Lexen,new String[] {view.getSRCAreaText()});
+				if(lexed) {
+					execute(Parsen, null);
+				} else {
+					writeStatus("Parsing not passible ... Lexing failed");
+				}
+			}
 			break;
 		case Execute:
-			writeStatus("Executing...");
-			view.setEnabledAll(false);
-			Executor ex = new Executor(curTokenArray);
-			ex.start();
-			debug("Thread running?!");
-			writeStatus("Executing...running!");
-			//Input is enabled after execution is done
+			if (!parsed) {
+				writeStatus("Parsing first");
+				sleep(100);
+				execute(Parsen,null);
+			}
+			if (parsed) {
+				writeStatus("Executing...");
+				view.setEnabledAll(false);
+				Executor ex = new Executor(curTokenArray);
+				ex.start();
+				debug("Thread running?!");
+				writeStatus("Executing...running!");
+				//Input is enabled after execution is done
+			} else {
+				writeStatus("Execution without parsing not passible!");
+			}
 			break;
 		case RBefehl:
 			if (args!=null && args.length>0) {
@@ -333,6 +380,21 @@ public class MyKaController {
 		enableInput=true;
 		view.setEnabledAll(true);		
 	}
+
+	public void textChanged() {
+		lexed = false;
+		view.setEnableParse(false);
+		parsed = false;		
+	}
+
+	public void sleep(int i) {
+		try {
+			Thread.sleep(i);
+		} catch (InterruptedException e) {
+			debug("sleep failed ?!");
+		}		
+	}
+
 
 
 }

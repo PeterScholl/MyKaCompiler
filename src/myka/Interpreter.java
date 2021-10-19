@@ -22,7 +22,7 @@ public class Interpreter {
 	private static Token[] tokenliste = null;
 	private static boolean fail = false;
 	private static boolean result = true; //Result von Bedingungsanfragen
-	private static int waitms=1000; //Waiting ms after every move
+	private static int waitms=20; //Waiting ms after every move
 
 	private Interpreter() { //kein Objekt wird erzeugt - statischse Klasse
 	}
@@ -186,6 +186,14 @@ public class Interpreter {
 	
 	public static void setWaitTime(int ms) {
 		waitms = ms;
+	}
+	
+	public static int getWaitTime() {
+		return waitms;
+	}
+
+	public static void stop() {
+		fail = true; //Zum Abbrechen der Ausfürhung		
 	}
 
 }
