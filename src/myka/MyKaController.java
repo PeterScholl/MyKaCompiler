@@ -96,8 +96,8 @@ public class MyKaController {
 		robotArea.ablegen();
 		robotZeichnen();
 		robotArea.aufnehmen();
-		robotArea.setMark(1, 1);
 		robotZeichnen();
+		//Ende Kniff, damit alle Bilder geladen sind
 	}
 
 	public void execute(int command, String[] args) {
@@ -292,7 +292,6 @@ public class MyKaController {
 	}
 
 	public void updateView() {
-		// TODO: Ansicht auffrischen - was muss gemacht werden?
 		view.updateCanvas();
 	}
 
@@ -312,7 +311,6 @@ public class MyKaController {
 		if (img.getWidth() != imagewidth || img.getHeight() != imageheight) {
 			imagewidth = img.getWidth();
 			imageheight = img.getHeight();
-			// TODO updateImgValues(); //Werte fuer den Roboter aktualisieren
 		}
 		g.setColor(Color.black);
 		g.drawLine(0, 0, 0, imageheight); // Rechte begrenzungslinie zur TextArea

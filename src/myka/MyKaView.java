@@ -9,7 +9,6 @@ import javax.swing.event.DocumentListener;
 
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 
 /**
  * In der Klasse GUI wird das Logical dargestellt
@@ -57,7 +56,7 @@ public class MyKaView implements MouseListener, KeyListener {
 
 		dateimenue = new JMenu("Datei"); // Datei-Menue
 		menuezeile.add(dateimenue);
-		JMenuItem oeffnenEintrag = new JMenuItem("Programmdatei öffnen");
+		JMenuItem oeffnenEintrag = new JMenuItem("Datei öffnen");
 		oeffnenEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				srcDateiOeffnen();
@@ -65,7 +64,7 @@ public class MyKaView implements MouseListener, KeyListener {
 		});
 		dateimenue.add(oeffnenEintrag);
 
-		JMenuItem srcSpeichernEintrag = new JMenuItem("Source-Datei speichern");
+		JMenuItem srcSpeichernEintrag = new JMenuItem("Datei speichern");
 		srcSpeichernEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				controller.execute(MyKaController.FileSpeichern, new String[] {textareaSRC.getText()});
@@ -316,8 +315,8 @@ public class MyKaView implements MouseListener, KeyListener {
 				System.out.println("changedUpdate fired!");
 			}   
 		});
-		new JScrollPane(textareaSRC);
-		center.add(textareaSRC);
+		center.add(new JScrollPane(textareaSRC));
+		//center.add(textareaSRC);
 		// Canvas für den Roboter
 		robotCanvas = new RobotCanvas(controller);
 		robotCanvas.addMouseListener(this);
@@ -367,7 +366,6 @@ public class MyKaView implements MouseListener, KeyListener {
 
 	private void infoAusgeben() {
 		// Abzuarbeitender Code, wenn auf Info geclickt wurde
-		System.out.println("Info!");
 		this.showInfoBox(infotext, "Info", 0);
 	}
 
@@ -468,33 +466,24 @@ public class MyKaView implements MouseListener, KeyListener {
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
 		if (e.getSource().equals(robotCanvas)) {
-			System.out.println("Key in Canvas gedrückt:" + e.getKeyCode());
+			debug("Key in Canvas gedrückt:" + e.getKeyCode());
 			int code = e.getKeyCode();
 
 			switch (code) {
@@ -526,13 +515,13 @@ public class MyKaView implements MouseListener, KeyListener {
 				controller.execute(MyKaController.Execute, null);
 				break;
 			case KeyEvent.VK_UP:
-				System.out.println("UP ");
+				//System.out.println("UP ");
 				break;
 			case KeyEvent.VK_DOWN:
-				System.out.println("DOWN ");
+				//System.out.println("DOWN ");
 				break;
 			case KeyEvent.VK_DELETE:
-				System.out.println("Del ");
+				//System.out.println("Del ");
 				break;
 			}
 		}

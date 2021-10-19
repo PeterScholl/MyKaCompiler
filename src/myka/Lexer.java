@@ -4,7 +4,8 @@ public class Lexer {
 	private static final int Z_Trenner = 0; // Zustand Trenner
 	private static final int Z_Alpha = 1; // Wort wird gebildet
 	private static final int Z_Zahl = 2; // Zahl wird gebildet
-	private static final int Z_Sink = 3; // Fehlersenke
+	private static final int Z_Kommentar = 3; // Mitten in einem Kommentar
+	private static final int Z_Sink = 4; // Fehlersenke
 	private static final int STAT_GOOD = 0;
 	private static final int ERR_charunknown = -1;
 	private static final int ERR_number_in_word = -2;
@@ -19,8 +20,7 @@ public class Lexer {
 	private static String terminalstring = "";
 	private static final boolean debug = false;
 
-	public Lexer() {
-		// TODO Auto-generated constructor stub
+	private Lexer() { //es wird kein Lexer-Objekt erzeugt - statische Klasse
 	}
 
 	public static void main(String[] args) {
@@ -115,10 +115,15 @@ public class Lexer {
 			zeilenpos = pos;
 		}
 		switch (zustand) {
+		case Z_Kommentar: // Im Kommentar 
+			if (c=='}') zustand = Z_Trenner;
+			return false;
 		case Z_Trenner: // Noch kein neues Terminal begonnen
 			if (isZiffer(c)) {
 				zustand = Z_Zahl;
 				terminalstring = "" + c;
+			} else if (c=='{') {
+				zustand = Z_Kommentar;
 			} else if (isAlpha(c)) {
 				zustand = Z_Alpha;
 				terminalstring = "" + c;
