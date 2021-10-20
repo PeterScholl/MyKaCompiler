@@ -11,7 +11,7 @@ import java.util.HashMap;
 public class Interpreter {
 	//Die Schachtelungstiefe ist eigentlich nicht erforderlich solange die Sprache keine rekursiven 
 	//aufrufe ermöglicht
-	private static final int MAX_REK_DEPTH = 20; //Maximale Schachtelungstiefe
+	private static final int MAX_REK_DEPTH = 200; //Maximale Schachtelungstiefe
 	private static int depth = 0; //aktuelle Schachtelungstiefe
 	private static final boolean debug = false; //debug ausgaben ein und ausschalten
 	private static MyKaController controller = null;
@@ -43,7 +43,7 @@ public class Interpreter {
 			executeToken(); //aktuelles Token ausführen
 		}
 		if (fail) {
-			System.err.println("Fehler in der Ausführung!!!");
+			System.err.println("Fehler in der Ausführung!!! pos: "+curpos+" Token: "+tokenliste[curpos]);
 		}
 	}
 

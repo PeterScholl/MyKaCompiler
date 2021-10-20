@@ -17,10 +17,9 @@ import java.awt.image.BufferedImage;
  * @version 16.05.2016
  */
 public class MyKaView implements MouseListener, KeyListener {
-	//public static final int PANEL_XMLtemplate = 2;
-	//public static final int PANEL_Questions = 1;
-	//public static final int PANEL_Database = 3;
-	//public static final int PANEL_MultiChoice = 4;
+	public static final int MODUS_NORMAL = 0;
+	public static final int MODUS_ZIEGEL = 1;
+	public static final int MODUS_MARKE = 2;
 
 	private JFrame fenster;
 	private JPanel center;
@@ -32,9 +31,9 @@ public class MyKaView implements MouseListener, KeyListener {
 	//private JList<String> fragenliste = new JList<String>(new String[] {});
 	private MyKaController controller = null;
 	private Font generalfont = new Font("Dialog", Font.BOLD, 16);
-	private static final boolean debug=false;
+	private static final boolean debug=!false;
 	private final static String infotext = "Vorlage zum Erstellen eines Lexers und Parsers\nWeitere Infos im README.md";
-
+	private int clickModus = MODUS_NORMAL;
 	/**
 	 * Constructor for objects of class GUI
 	 */
@@ -453,13 +452,20 @@ public class MyKaView implements MouseListener, KeyListener {
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		//System.out.println("Pressed: " + e);
+		System.out.println("Pressed: " + e);
 		if (e.isPopupTrigger() && e.getSource().equals(robotCanvas)) {
 			//System.out.println("Pop-UP-Menu der Fragenliste öffnen! - Mouse pressed");
-			this.doPopMenuFragenliste(e);
+			this.doPopMenuCanvas(e);
 		} else if (e.getSource().equals(robotCanvas)) {
 			debug("Focus on robotCanvas");
 			robotCanvas.requestFocus();
+			if (clickModus==MODUS_ZIEGEL && e.getButton()==MouseEvent.BUTTON1) {
+				controller.execute(MyKaController.EditWorld, new String[] {"Z+",""+e.getX(),""+e.getY()});
+			} else if (clickModus==MODUS_ZIEGEL && e.getButton()==MouseEvent.BUTTON2) {
+				controller.execute(MyKaController.EditWorld, new String[] {"Z-",""+e.getX(),""+e.getY()});
+			} else if (clickModus==MODUS_MARKE) {
+				controller.execute(MyKaController.EditWorld, new String[] {"M",""+e.getX(),""+e.getY()});
+			}
 		}
 	}
 
@@ -468,7 +474,7 @@ public class MyKaView implements MouseListener, KeyListener {
 		//System.out.println("Released: " + e);
 		if (e.isPopupTrigger() && e.getSource().equals(robotCanvas)) {
 			//System.out.println("Pop-UP-Menu der Fragenliste öffnen! - Mouse released");
-			this.doPopMenuFragenliste(e);
+			this.doPopMenuCanvas(e);
 		}
 	}
 
@@ -536,25 +542,64 @@ public class MyKaView implements MouseListener, KeyListener {
 
 	}
 
-	private void doPopMenuFragenliste(MouseEvent e) {
+	private void doPopMenuCanvas(MouseEvent e) {
 		JPopupMenu menu = new JPopupMenu();
+		debug("Mouse-Event: "+e);
 		
-		JMenuItem questionToXMLEintrag = new JMenuItem("Frage nach XML");
-		questionToXMLEintrag.addActionListener(new ActionListener() {
+		JMenuItem ziegelSetzen = new JMenuItem("Ziegel setzen");
+		ziegelSetzen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
-				//int index = fragenliste.locationToIndex(e.getPoint());				
-				//controller.execute(Controller.QuestionToXML, new String[] {""+index});
+				controller.execute(MyKaController.EditWorld, new String[] {"Z+",""+e.getX(),""+e.getY()});
 			}
 		});
-		menu.add(questionToXMLEintrag);
+		menu.add(ziegelSetzen);
 
-		JMenuItem quizToXMLEintrag = new JMenuItem("Quiz nach XML");
-		quizToXMLEintrag.addActionListener(new ActionListener() {
+		JMenuItem ziegelEntfernen = new JMenuItem("Ziegel entfernen");
+		ziegelEntfernen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
-				//controller.execute(Controller.QuizToXML, null);
+				controller.execute(MyKaController.EditWorld, new String[] {"Z-",""+e.getX(),""+e.getY()});
 			}
 		});
-		menu.add(quizToXMLEintrag);
+		menu.add(ziegelEntfernen);
+
+		JMenuItem markierungAendern = new JMenuItem("Markierung ändern");
+		markierungAendern.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ae) {
+				controller.execute(MyKaController.EditWorld, new String[] {"M",""+e.getX(),""+e.getY()});
+			}
+		});
+		menu.add(markierungAendern);
+		menu.addSeparator();
+		
+		if (clickModus!=MODUS_NORMAL) {
+			JMenuItem modusNormal = new JMenuItem("Clickmodus normal");
+			modusNormal.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ae) {
+					clickModus = MODUS_NORMAL;
+				}
+			});
+			menu.add(modusNormal);
+		}
+
+		if (clickModus!=MODUS_ZIEGEL) {
+			JMenuItem modusZIEGEL = new JMenuItem("Clickmodus ZIEGEL");
+			modusZIEGEL.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ae) {
+					clickModus = MODUS_ZIEGEL;
+				}
+			});
+			menu.add(modusZIEGEL);
+		}
+
+		if (clickModus!=MODUS_MARKE) {
+			JMenuItem modusMARK = new JMenuItem("Clickmodus MARKE");
+			modusMARK.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ae) {
+					clickModus = MODUS_MARKE;
+				}
+			});
+			menu.add(modusMARK);
+		}
 
 		menu.show(e.getComponent(), e.getX(), e.getY());
 	}

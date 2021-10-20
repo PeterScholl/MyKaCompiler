@@ -38,11 +38,12 @@ public class MyKaController {
 	public static final int SetWorld = 12; // Welt ändern! länge,breite,hoehe
 	public static final int SetRobPos = 13; // Position des Roboters verändern
 	public static final int ResetWorld = 14; //Welt auf Ausgangsposition setzen
+	public static final int EditWorld = 15; //z.B. Ziegel setzen, Marke setzen usw.
 	public static final int Lexen = 20; // Lexen
 	public static final int Parsen = 21; // Parsen
 	public static final int Execute = 22; // Programm ausführen
 	public static final int RBefehl = 30; // RoboterBefehl in args ausführen
-	private static final boolean debug = false;
+	private static final boolean debug = !false;
 	private int imagewidth, imageheight;
 	private RobotArea robotArea = new RobotArea();
 	private MyKaView view = null;
@@ -52,6 +53,7 @@ public class MyKaController {
 	private List<Token> curTokenList = null;
 	private Token[] curTokenArray = null;
 	private boolean enableInput = true;
+	private int ursprung_x,ursprung_y; //Pixelkoordinaten des Koordinatenursprungs
 	private static MyKaController controller = null;
 
 	public static void main(String[] args) {
@@ -145,6 +147,9 @@ public class MyKaController {
 		case ResetWorld:
 			robotArea.reset();
 			robotZeichnen();
+			break;
+		case EditWorld:
+			editWorld(args);
 			break;
 		case Schritt:
 			result = robotArea.forward();
@@ -314,8 +319,8 @@ public class MyKaController {
 		int h = robotArea.getHeight();
 		int mitte_canvas_x = imagewidth / 2;
 		int mitte_canvas_y = imageheight / 2;
-		int ursprung_x = mitte_canvas_x - (30 * robotArea.getWidth() - 15 * robotArea.getLength()) / 2;
-		int ursprung_y = mitte_canvas_y - (15 * robotArea.getLength() - 15 * robotArea.getHeight()) / 2;
+		ursprung_x = mitte_canvas_x - (30 * robotArea.getWidth() - 15 * robotArea.getLength()) / 2;
+		ursprung_y = mitte_canvas_y - (15 * robotArea.getLength() - 15 * robotArea.getHeight()) / 2;
 		ursprung_x = (ursprung_x < 15 * robotArea.getLength() + 20) ? 15 * robotArea.getLength() + 20 : ursprung_x;
 		ursprung_y = (ursprung_y < 15 * robotArea.getHeight() + 60) ? 15 * robotArea.getHeight() + 60 : ursprung_y;
 		// Boden zeichnen
@@ -410,5 +415,32 @@ public class MyKaController {
 	public void setView(MyKaView myKaView) {
 		view=myKaView;		
 	}
+	
+	private void editWorld(String[] args) {
+		if (args.length!=3) return; //Parameter stimmen nicht
+		try {
+			int pix_x = Integer.parseInt(args[1]);
+			int pix_y = Integer.parseInt(args[2]);
+			//Feld ausrechnen
+			int spalte = (pix_y - ursprung_y)/15;
+			int zeile = (pix_x - ursprung_x+spalte*15)/30;
+			debug("editWorld "+args[0]+"pix x,y: "+pix_x+","+pix_y+" zeile: "+zeile+" spalte:"+spalte);
+			if (args[0].equals("Z+")) {
+				robotArea.putZiegel(zeile, spalte);
+			} else if (args[0].equals("Z-")) {
+				robotArea.takeZiegel(zeile, spalte);
+			} else if (args[0].equals("M")) {
+				if (robotArea.getMark(zeile, spalte)) {
+					robotArea.removeMark(zeile, spalte);
+				} else {
+					robotArea.setMark(zeile, spalte);
+				}
+			}
+			robotZeichnen();			
+		} catch (Exception e) {
+			return; //Konvertierung nicht möglich
+		}
+	}
+
 
 }
