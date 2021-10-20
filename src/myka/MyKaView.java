@@ -72,6 +72,25 @@ public class MyKaView implements MouseListener, KeyListener {
 			}
 		});
 		dateimenue.add(srcSpeichernEintrag);
+		
+		dateimenue.addSeparator();
+		JMenuItem weltOeffnenEintrag = new JMenuItem("Welt öffnen");
+		weltOeffnenEintrag.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				controller.execute(MyKaController.WeltLaden, null);
+			}
+		});
+		dateimenue.add(weltOeffnenEintrag);
+
+		JMenuItem weltSpeichernEintrag = new JMenuItem("Welt speichern");
+		weltSpeichernEintrag.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				controller.execute(MyKaController.WeltSpeichern, null);
+			}
+		});
+		dateimenue.add(weltSpeichernEintrag);
+		
+		dateimenue.addSeparator();
 
 		JMenuItem beendenEintrag = new JMenuItem("Beenden");
 		beendenEintrag.addActionListener(new ActionListener() {
@@ -663,7 +682,7 @@ public class MyKaView implements MouseListener, KeyListener {
 		einstellungmenue.setEnabled(bool);
 		for (int i = 0; i < dateimenue.getItemCount(); i++) {
 			JMenuItem c = dateimenue.getItem(i);
-			if (!c.getText().equals("Beenden"))
+			if (c != null && c.getText()!=null && !c.getText().equals("Beenden")) //seperators machen Stress
 				c.setEnabled(bool);
 		}
 	}

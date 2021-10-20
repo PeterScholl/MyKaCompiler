@@ -39,6 +39,8 @@ public class MyKaController {
 	public static final int SetRobPos = 13; // Position des Roboters verändern
 	public static final int ResetWorld = 14; //Welt auf Ausgangsposition setzen
 	public static final int EditWorld = 15; //z.B. Ziegel setzen, Marke setzen usw.
+	public static final int WeltLaden = 16; //WeltDateiLaden
+	public static final int WeltSpeichern = 17; //WeltDateiSpeichern
 	public static final int Lexen = 20; // Lexen
 	public static final int Parsen = 21; // Parsen
 	public static final int Execute = 22; // Programm ausführen
@@ -114,6 +116,18 @@ public class MyKaController {
 			break;
 		case FileSpeichern:
 			Dateiaktionen.writeStringToFile(args[0]);
+			break;
+		case WeltLaden:
+			File wfile = Dateiaktionen.chooseFileToRead();
+			curfilename = (wfile != null ? wfile.getAbsolutePath() : "");
+			if (wfile != null) {
+				String inhaltFile = Dateiaktionen.liesTextDatei(wfile);
+				robotArea.fromString(inhaltFile);
+				robotZeichnen();
+			}
+			break;
+		case WeltSpeichern:
+			Dateiaktionen.writeStringToFile(robotArea.toString());
 			break;
 		case SetWorld:
 			int[] v = new int[3];
