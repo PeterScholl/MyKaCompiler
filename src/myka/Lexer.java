@@ -24,7 +24,7 @@ public class Lexer {
 	private static int pos = 0;
 	private static int zeilenpos = 0;
 	private static String terminalstring = "";
-	private static final boolean debug = true;
+	private static final boolean debug = false;
 	private static boolean nextTokenBez = false; // Auf true setzen, wenn das nächste Token ein Bezeichner ist
 	private static List<String> bezeichner = new List<String>();
 
@@ -32,7 +32,7 @@ public class Lexer {
 	}
 
 	public static void main(String[] args) {
-		if (!debug) {
+		if (debug) {
 		// Testfunktion
 		System.out.println("Zifferntest: " + isZiffer('5') + " a:" + isZiffer('a'));
 		System.out.println("Alphatest: 5:" + isAlpha('5') + " a:" + isAlpha('a') + " R:" + isAlpha('R'));
@@ -212,7 +212,7 @@ public class Lexer {
 
 	public static void debug(String text) {
 		if (debug) {
-			System.out.println(text);
+			System.out.println("L: "+text);
 		}
 	}
 

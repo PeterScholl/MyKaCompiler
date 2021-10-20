@@ -43,7 +43,7 @@ public class MyKaController {
 	public static final int Parsen = 21; // Parsen
 	public static final int Execute = 22; // Programm ausführen
 	public static final int RBefehl = 30; // RoboterBefehl in args ausführen
-	private static final boolean debug = !false;
+	private static final boolean debug = false;
 	private int imagewidth, imageheight;
 	private RobotArea robotArea = new RobotArea();
 	private MyKaView view = null;

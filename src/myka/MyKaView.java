@@ -11,10 +11,10 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
 /**
- * In der Klasse GUI wird das Logical dargestellt
+ * In dieser Klasse wird das GUI zur Verfügung gestellt
  * 
  * @author scholl@unterrichtsportal.org
- * @version 16.05.2016
+ * @version 20.10.21
  */
 public class MyKaView implements MouseListener, KeyListener {
 	public static final int MODUS_NORMAL = 0;
@@ -24,16 +24,17 @@ public class MyKaView implements MouseListener, KeyListener {
 	private JFrame fenster;
 	private JPanel center;
 	private JTextArea textareaSRC;
-	private JMenu hilfemenue,dateimenue,compmenue,robotermenue, einstellungmenue;
-	private JMenuItem parserEintrag,interpreterEintrag;
+	private JMenu hilfemenue, dateimenue, compmenue, robotermenue, einstellungmenue;
+	private JMenuItem parserEintrag, interpreterEintrag;
 	private RobotCanvas robotCanvas;
 	private JLabel upperLabel, statusLabel;
-	//private JList<String> fragenliste = new JList<String>(new String[] {});
+	// private JList<String> fragenliste = new JList<String>(new String[] {});
 	private MyKaController controller = null;
 	private Font generalfont = new Font("Dialog", Font.BOLD, 16);
-	private static final boolean debug=!false;
+	private static final boolean debug = false;
 	private final static String infotext = "Vorlage zum Erstellen eines Lexers und Parsers\nWeitere Infos im README.md";
 	private int clickModus = MODUS_NORMAL;
+
 	/**
 	 * Constructor for objects of class GUI
 	 */
@@ -67,7 +68,7 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem srcSpeichernEintrag = new JMenuItem("Datei speichern");
 		srcSpeichernEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				controller.execute(MyKaController.FileSpeichern, new String[] {textareaSRC.getText()});
+				controller.execute(MyKaController.FileSpeichern, new String[] { textareaSRC.getText() });
 			}
 		});
 		dateimenue.add(srcSpeichernEintrag);
@@ -86,7 +87,7 @@ public class MyKaView implements MouseListener, KeyListener {
 		srcLexenEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// Lexer aufrufen - Tokenliste generieren
-				controller.execute(MyKaController.Lexen, new String[] {textareaSRC.getText()});
+				controller.execute(MyKaController.Lexen, new String[] { textareaSRC.getText() });
 			}
 		});
 		compmenue.add(srcLexenEintrag);
@@ -162,21 +163,21 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem info = new JMenuItem("aktueller Status");
 		info.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("Roboter-Status:\n"+controller.getRobotArea());
+				showInfoBox(controller.getRobotArea().toString(), "Roboterstatus", 0);
+				//System.out.println("Roboter-Status:\n" + controller.getRobotArea());
 			}
 		});
 		robotermenue.add(info);
-		
-		
+
 		einstellungmenue = new JMenu("Einstellungen"); // Einstellungen-Menue
 		menuezeile.add(einstellungmenue);
 		JMenuItem feldGroesseEintrag = new JMenuItem("Spielfeldgröße");
 		feldGroesseEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//Feldgröße einstellen
-				String ans = Hilfsfunktionen.stringErfragen("Gib die Größe des Spielfelds ein\n"+
-				"(Länge,Breite,Höhe)", "Spielfeld erstellen", "5,5,6");
-				if (ans!= null) {
+				// Feldgröße einstellen
+				String ans = Hilfsfunktionen.stringErfragen(
+						"Gib die Größe des Spielfelds ein\n" + "(Länge,Breite,Höhe)", "Spielfeld erstellen", "5,5,6");
+				if (ans != null) {
 					String[] ansa = ans.split(",");
 					controller.execute(MyKaController.SetWorld, ansa);
 				}
@@ -187,9 +188,9 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem mykaPositionEintrag = new JMenuItem("Roboterposition");
 		mykaPositionEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//Roboterposition festlegen
-				String ans = Hilfsfunktionen.stringErfragen("Gib die Position des Roboters ein\n"+
-				"(x,y)", "Roboter versetzen", "0,0");
+				// Roboterposition festlegen
+				String ans = Hilfsfunktionen.stringErfragen("Gib die Position des Roboters ein\n" + "(x,y)",
+						"Roboter versetzen", "0,0");
 				String[] ansa = ans.split(",");
 				controller.execute(MyKaController.SetRobPos, ansa);
 			}
@@ -208,23 +209,19 @@ public class MyKaView implements MouseListener, KeyListener {
 		waitTimeEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int ms = Interpreter.getWaitTime();
-				String zeit = (String) JOptionPane.showInputDialog(null,
-	                    "Gib die Wartezeit in ms ein!","Einstellung Wartezeit",
-	                            JOptionPane.PLAIN_MESSAGE,
-	                            null,
-	                            null,
-	                            ""+ms);
+				String zeit = (String) JOptionPane.showInputDialog(null, "Gib die Wartezeit in ms ein!",
+						"Einstellung Wartezeit", JOptionPane.PLAIN_MESSAGE, null, null, "" + ms);
 				try {
-					ms=Integer.parseInt(zeit);
+					ms = Integer.parseInt(zeit);
 				} catch (Exception ex) {
-					debug("Keine Zahl für Wartezeit angegeben: "+zeit);
+					debug("Keine Zahl für Wartezeit angegeben: " + zeit);
 				}
 				Interpreter.setWaitTime(ms);
 			}
 		});
 		einstellungmenue.add(waitTimeEintrag);
 
-		//TODO Hindernisse und Marken setzen
+		// TODO Hindernisse und Marken setzen
 
 		einstellungmenue.addSeparator();
 
@@ -245,7 +242,7 @@ public class MyKaView implements MouseListener, KeyListener {
 			}
 		});
 		einstellungmenue.add(schriftKleinerEintrag);
-		
+
 		hilfemenue = new JMenu("Hilfe"); // Hilfe-Menue
 		menuezeile.add(hilfemenue);
 		JMenuItem infoEintrag = new JMenuItem("Info");
@@ -259,18 +256,10 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem srcBeispielEintrag = new JMenuItem("Beispielcode einfügen");
 		srcBeispielEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String bsp = "{Beispielcode - dies ist ein Kommentar}\n"
-						+ "wiederhole 4 mal\n"
-						+ "  wiederhole solange NichtIstWand\n"
-						+ "    Hinlegen\n    Schritt\n"
-						+ "    wenn IstMarke dann\n"
-						+ "      MarkeLöschen\n"
-						+ "    sonst\n"
-						+ "      MarkeSetzen\n"
-						+ "    endewenn\n"
-						+ "  endewiederhole\n"
-						+ "  LinksDrehen\n"
-						+ "endewiederhole\n";
+				String bsp = "{Beispielcode - dies ist ein Kommentar}\n" + "wiederhole 4 mal\n"
+						+ "  wiederhole solange NichtIstWand\n" + "    Hinlegen\n    Schritt\n"
+						+ "    wenn IstMarke dann\n" + "      MarkeLöschen\n" + "    sonst\n" + "      MarkeSetzen\n"
+						+ "    endewenn\n" + "  endewiederhole\n" + "  LinksDrehen\n" + "endewiederhole\n";
 				textareaSRC.setText(bsp);
 			}
 		});
@@ -300,7 +289,7 @@ public class MyKaView implements MouseListener, KeyListener {
 		contentPane.add(upperLabel, BorderLayout.NORTH);
 
 		// Kern des Fensters ist ein Bereich für den Code und ein Canvas für den Roboter
-		center = new JPanel(new GridLayout(1,2));
+		center = new JPanel(new GridLayout(1, 2));
 
 		// Textarea für SRC-Code
 		textareaSRC = new JTextArea();
@@ -311,23 +300,25 @@ public class MyKaView implements MouseListener, KeyListener {
 			public void insertUpdate(DocumentEvent e) {
 				textChanged();
 			}
+
 			@Override
 			public void removeUpdate(DocumentEvent e) {
 				debug("removeUpdate fired!");
 				textChanged();
 			}
+
 			@Override
 			public void changedUpdate(DocumentEvent e) {
 				debug("changedUpdate fired!");
 				textChanged();
-			}   
+			}
 		});
 		center.add(new JScrollPane(textareaSRC));
-		//center.add(textareaSRC);
+		// center.add(textareaSRC);
 		// Canvas für den Roboter
 		robotCanvas = new RobotCanvas(controller);
 		robotCanvas.addMouseListener(this);
-		//robotCanvas.addMouseMotionListener(this);
+		// robotCanvas.addMouseMotionListener(this);
 		robotCanvas.addKeyListener(this);
 		robotCanvas.addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent componentEvent) {
@@ -338,7 +329,6 @@ public class MyKaView implements MouseListener, KeyListener {
 
 		center.add(robotCanvas);
 		contentPane.add(center, BorderLayout.CENTER);
-
 
 		statusLabel = new JLabel("Ich bin das Status-Label");
 		contentPane.add(statusLabel, BorderLayout.SOUTH);
@@ -352,8 +342,8 @@ public class MyKaView implements MouseListener, KeyListener {
 	}
 
 	protected void textChanged() {
-		//Mitteilen, dass neu geparst werden muss
-		controller.textChanged();		
+		// Mitteilen, dass neu geparst werden muss
+		controller.textChanged();
 	}
 
 	/**
@@ -385,18 +375,17 @@ public class MyKaView implements MouseListener, KeyListener {
 	// ******** Von außen aufzurufende Methoden ***********//
 
 	public void setStatusLine(String text) {
-		debug("Status schreiben: "+text);
+		debug("Status schreiben: " + text);
 		statusLabel.setText(text);
 	}
 
 	public void fillSRCArea(String inhalt) {
 		textareaSRC.setText((inhalt));
 	}
-	
+
 	public String getSRCAreaText() {
 		return textareaSRC.getText();
 	}
-
 
 	public void increaseFontSize(Container parent, int inc) {
 		generalfont = generalfont.deriveFont((float) (1.0 * generalfont.getSize() + (1.0 * inc)));
@@ -438,42 +427,35 @@ public class MyKaView implements MouseListener, KeyListener {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		if (e.getClickCount() == 2 && e.getSource() instanceof JList) {
-			@SuppressWarnings("unchecked")
-			JList<String> theList = (JList<String>) e.getSource();
-			int index = theList.locationToIndex(e.getPoint());
-			//controller.execute(Controller.Question_anzeigen, new String[] { "" + index });
-			if (index >= 0) {
-				Object o = theList.getModel().getElementAt(index);
-				System.out.println("Double-clicked on: " + o.toString());
-			}
+		if (e.getClickCount() == 2) {
+			debug("Double-clicked: " + e);
 		}
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		System.out.println("Pressed: " + e);
+		// System.out.println("Pressed: " + e);
 		if (e.isPopupTrigger() && e.getSource().equals(robotCanvas)) {
-			//System.out.println("Pop-UP-Menu der Fragenliste öffnen! - Mouse pressed");
+			// System.out.println("Pop-UP-Menu der Fragenliste öffnen! - Mouse pressed");
 			this.doPopMenuCanvas(e);
 		} else if (e.getSource().equals(robotCanvas)) {
 			debug("Focus on robotCanvas");
 			robotCanvas.requestFocus();
-			if (clickModus==MODUS_ZIEGEL && e.getButton()==MouseEvent.BUTTON1) {
-				controller.execute(MyKaController.EditWorld, new String[] {"Z+",""+e.getX(),""+e.getY()});
-			} else if (clickModus==MODUS_ZIEGEL && e.getButton()==MouseEvent.BUTTON2) {
-				controller.execute(MyKaController.EditWorld, new String[] {"Z-",""+e.getX(),""+e.getY()});
-			} else if (clickModus==MODUS_MARKE) {
-				controller.execute(MyKaController.EditWorld, new String[] {"M",""+e.getX(),""+e.getY()});
+			if (clickModus == MODUS_ZIEGEL && e.getButton() == MouseEvent.BUTTON1) {
+				controller.execute(MyKaController.EditWorld, new String[] { "Z+", "" + e.getX(), "" + e.getY() });
+			} else if (clickModus == MODUS_ZIEGEL && e.getButton() == MouseEvent.BUTTON2) {
+				controller.execute(MyKaController.EditWorld, new String[] { "Z-", "" + e.getX(), "" + e.getY() });
+			} else if (clickModus == MODUS_MARKE) {
+				controller.execute(MyKaController.EditWorld, new String[] { "M", "" + e.getX(), "" + e.getY() });
 			}
 		}
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		//System.out.println("Released: " + e);
+		// System.out.println("Released: " + e);
 		if (e.isPopupTrigger() && e.getSource().equals(robotCanvas)) {
-			//System.out.println("Pop-UP-Menu der Fragenliste öffnen! - Mouse released");
+			// System.out.println("Pop-UP-Menu der Fragenliste öffnen! - Mouse released");
 			this.doPopMenuCanvas(e);
 		}
 	}
@@ -501,41 +483,41 @@ public class MyKaView implements MouseListener, KeyListener {
 			int code = e.getKeyCode();
 
 			switch (code) {
-			case 71: //g
+			case 71: // g
 				controller.execute(MyKaController.Schritt, null);
 				break;
-			case 76: //l
+			case 76: // l
 				controller.execute(MyKaController.LinksDrehen, null);
 				break;
-			case 82: //r
+			case 82: // r
 				controller.execute(MyKaController.RechtsDrehen, null);
 				break;
-			case 65: //a
+			case 65: // a
 				controller.execute(MyKaController.Aufheben, null);
 				break;
-			case 72: //h
+			case 72: // h
 				controller.execute(MyKaController.Hinlegen, null);
 				break;
-			case 77: //m
+			case 77: // m
 				controller.execute(MyKaController.MarkeSetzen, null);
 				break;
-			case 78: //n
+			case 78: // n
 				controller.execute(MyKaController.MarkeLoeschen, null);
 				break;
-			case 90: //z
+			case 90: // z
 				controller.execute(MyKaController.ResetWorld, null);
 				break;
-			case 69: //e
+			case 69: // e
 				controller.execute(MyKaController.Execute, null);
 				break;
 			case KeyEvent.VK_UP:
-				//System.out.println("UP ");
+				// System.out.println("UP ");
 				break;
 			case KeyEvent.VK_DOWN:
-				//System.out.println("DOWN ");
+				// System.out.println("DOWN ");
 				break;
 			case KeyEvent.VK_DELETE:
-				//System.out.println("Del ");
+				// System.out.println("Del ");
 				break;
 			}
 		}
@@ -544,12 +526,12 @@ public class MyKaView implements MouseListener, KeyListener {
 
 	private void doPopMenuCanvas(MouseEvent e) {
 		JPopupMenu menu = new JPopupMenu();
-		debug("Mouse-Event: "+e);
-		
+		debug("Mouse-Event: " + e);
+
 		JMenuItem ziegelSetzen = new JMenuItem("Ziegel setzen");
 		ziegelSetzen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
-				controller.execute(MyKaController.EditWorld, new String[] {"Z+",""+e.getX(),""+e.getY()});
+				controller.execute(MyKaController.EditWorld, new String[] { "Z+", "" + e.getX(), "" + e.getY() });
 			}
 		});
 		menu.add(ziegelSetzen);
@@ -557,7 +539,7 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem ziegelEntfernen = new JMenuItem("Ziegel entfernen");
 		ziegelEntfernen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
-				controller.execute(MyKaController.EditWorld, new String[] {"Z-",""+e.getX(),""+e.getY()});
+				controller.execute(MyKaController.EditWorld, new String[] { "Z-", "" + e.getX(), "" + e.getY() });
 			}
 		});
 		menu.add(ziegelEntfernen);
@@ -565,13 +547,13 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem markierungAendern = new JMenuItem("Markierung ändern");
 		markierungAendern.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
-				controller.execute(MyKaController.EditWorld, new String[] {"M",""+e.getX(),""+e.getY()});
+				controller.execute(MyKaController.EditWorld, new String[] { "M", "" + e.getX(), "" + e.getY() });
 			}
 		});
 		menu.add(markierungAendern);
 		menu.addSeparator();
-		
-		if (clickModus!=MODUS_NORMAL) {
+
+		if (clickModus != MODUS_NORMAL) {
 			JMenuItem modusNormal = new JMenuItem("Clickmodus normal");
 			modusNormal.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ae) {
@@ -581,7 +563,7 @@ public class MyKaView implements MouseListener, KeyListener {
 			menu.add(modusNormal);
 		}
 
-		if (clickModus!=MODUS_ZIEGEL) {
+		if (clickModus != MODUS_ZIEGEL) {
 			JMenuItem modusZIEGEL = new JMenuItem("Clickmodus ZIEGEL");
 			modusZIEGEL.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ae) {
@@ -591,7 +573,7 @@ public class MyKaView implements MouseListener, KeyListener {
 			menu.add(modusZIEGEL);
 		}
 
-		if (clickModus!=MODUS_MARKE) {
+		if (clickModus != MODUS_MARKE) {
 			JMenuItem modusMARK = new JMenuItem("Clickmodus MARKE");
 			modusMARK.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ae) {
@@ -603,19 +585,21 @@ public class MyKaView implements MouseListener, KeyListener {
 
 		menu.show(e.getComponent(), e.getX(), e.getY());
 	}
-	
+
 	/**
-	 * Erzeugt eine Infobox mit der Nachricht und dem Titel, die für timerms Millisekunden
-	 * angezeigt wird, wenn timerms>0 ist
+	 * Erzeugt eine Infobox mit der Nachricht und dem Titel, die für timerms
+	 * Millisekunden angezeigt wird, wenn timerms>0 ist
+	 * 
 	 * @param message Nachricht
-	 * @param title Title der Box
-	 * @param timerms wenn größer als 0, verschwindet die Box nach dieser Zeit von ms
+	 * @param title   Title der Box
+	 * @param timerms wenn größer als 0, verschwindet die Box nach dieser Zeit von
+	 *                ms
 	 */
 	public void showInfoBox(String message, String title, int timerms) {
 		JDialog d = createDialog(fenster, message, title, timerms);
 		d.setLocationRelativeTo(fenster);
-		//JFrame parent = fenster;
-		//d.setLocation(parent.getX() + parent.getWidth()/2, parent.getY());
+		// JFrame parent = fenster;
+		// d.setLocation(parent.getX() + parent.getWidth()/2, parent.getY());
 		debug("Setting Dialog visible");
 		long time = System.nanoTime();
 		d.setVisible(true);
@@ -666,13 +650,14 @@ public class MyKaView implements MouseListener, KeyListener {
 		dialogContainer.add(panel1, BorderLayout.SOUTH);
 		return modelDialog;
 	}
+
 	private void debug(String text) {
 		if (debug)
 			System.out.println("V:" + text);
 	}
 
 	public void setEnabledAll(boolean bool) {
-		debug("setEnableAll to "+bool);
+		debug("setEnableAll to " + bool);
 		compmenue.setEnabled(bool);
 		robotermenue.setEnabled(bool);
 		einstellungmenue.setEnabled(bool);
@@ -682,6 +667,7 @@ public class MyKaView implements MouseListener, KeyListener {
 				c.setEnabled(bool);
 		}
 	}
+
 	public void updateCanvas() {
 		debug("updateCanvas!");
 		robotCanvas.update();
@@ -690,7 +676,8 @@ public class MyKaView implements MouseListener, KeyListener {
 
 	public void setEnableParse(boolean b) {
 		parserEintrag.setEnabled(b);
-		if (!b) setEnableExec(false);
+		if (!b)
+			setEnableExec(false);
 	}
 
 	public void setEnableExec(boolean b) {
