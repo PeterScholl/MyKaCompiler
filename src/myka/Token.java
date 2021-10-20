@@ -5,6 +5,7 @@ public class Token {
 	public static final int T_Cond = 2;
 	public static final int T_Move = 3;
 	public static final int T_Cont = 4; //Control Token
+	public static final int T_Bez = 5; //Bezeichner
 	private static final int T_Unknown = 0; //unbekannter typ ;-)
 	
 	private int typ = T_Unknown;

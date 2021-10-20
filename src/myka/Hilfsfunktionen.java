@@ -83,4 +83,11 @@ public class Hilfsfunktionen {
                         null,
                         vorgabe);
 	}
+	
+	public static boolean isStringInArray(String text, String[] array) {
+		for (int i=0; i<array.length; i++) {
+			if (text.equals(array[i])) return true;
+		}
+		return false;
+	}
 }

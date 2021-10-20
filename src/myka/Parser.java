@@ -3,12 +3,13 @@ package myka;
 /**
  * Sprache erkennen, die in der Tokenliste genutzt wird
  * Start: Programm
- * Programm -> leer | Anweisung Programm
- * Anweisung -> befehl | wiederhole Wiederholung Programm | wenn Bedingung Programm
+ * Programm -> leer | Anweisung Programm | eAnweisung eigAnweisung Programm
+ * Anweisung -> befehl | wiederhole Wiederholung | wenn Bedingung | {Bez} 
  * Wiederholung -> zahl mal Programm endewiederhole | solange ...
  * Bedingung -> {Bedingung} dann Programm endewenn | {Bedingung} dann Programm sonst Programm endewenn
+ * eigAnweisung -> {Bez} Programm endeAnweisung
  * Das ist nur mit einem Kellerspeicher moeglich
- * Kelleralphabet # , w - while Schleife, i - if, s - sonstZweig von if
+ * Kelleralphabet # , w - while Schleife, i - if, s - sonstZweig von if, a - eigeneanweisung
  * @author peter
  *
  */
@@ -40,6 +41,9 @@ public class Parser {
 			if (akt.getTyp()==Token.T_Move && keller.top()=='#') {
 				curpos++;
 				return pruefeProgramm();
+			} else if (akt.getTyp()==Token.T_Bez && keller.top()=='#') {
+				curpos++;
+				return pruefeProgramm();
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wiederhole") && keller.top()=='#') {
 				//Wiederholung begonnen
 				curpos++;
@@ -50,6 +54,11 @@ public class Parser {
 				curpos++;
 				keller.push('i'); //if eintragen
 				return pruefeOpenIf();
+			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("Anweisung") && keller.top()=='#') {
+				//Anweisung wird definiert
+				curpos++;
+				keller.push('a'); //Anweisung eintragen
+				return pruefeOpenAnweisung();
 			} else {
 				fehlertext = "Unerwartetes Token: "+akt;
 				return false;
@@ -58,6 +67,58 @@ public class Parser {
 		return true; //leeres (Rest-)Programm
 	}
 
+	private static boolean pruefeOpenAnweisung() {
+		if (!hasAccess()) return eofWhileParsing(); //Eigentlich ueberfluessig
+		Token akt = tokenArray[curpos];
+		debug("In pruefe Anwisung mit Token:"+akt);
+		if (akt.getTyp()==Token.T_Bez) {
+			curpos++;
+			if (!hasAccess()) return eofWhileParsing();
+			boolean result = pruefeInAnweisung();
+			return result;
+		} else {
+			fehlertext = "Anweisung erstellt aber kein Bezeichner genannt: "+akt;
+			return false;
+		}		
+	}
+
+	private static boolean pruefeInAnweisung() {
+		if (keller.top()=='#') { //wieder auf Ausgangsebene a beendet
+			return pruefeProgramm();
+		} //Andere Optionen gibt es nicht, da Anweisungen nicht innerhalb von if oder while deklariert werden
+		if (hasAccess()) {
+			Token akt = tokenArray[curpos];
+			debug("In pruefe InAnweisung mit Token:"+akt);
+			if (akt.getTyp()==Token.T_Move && keller.top()=='a') {
+				curpos++;
+				return pruefeInAnweisung();
+			} else if (akt.getTyp()==Token.T_Bez && keller.top()=='a') {
+				curpos++;
+				return pruefeInAnweisung();
+			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("endeAnweisung") && keller.top()=='a') {
+				//Anweisungsbeschreibung beendet
+				keller.pop(); //Anweisung aus Keller entfernen
+				curpos++;
+				return pruefeInAnweisung();
+			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wenn")) {
+				//WennDann begonnen
+				keller.push('i'); //if eintragen
+				curpos++;
+				return pruefeOpenIf();
+			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wiederhole")) {
+				//Neue Schleife begonnen
+				keller.push('w'); //schleife eintragen
+				curpos++;
+				return pruefeOpenWhile();
+			} else {
+				fehlertext = "Unerwartetes Token: "+akt;
+				return false;
+			}
+		}
+		fehlertext = "Programm endet in Anweisungserstellung";
+		return false; 
+	}
+	
 	private static boolean pruefeOpenWhile() {
 		if (!hasAccess()) return eofWhileParsing(); //Eigentlich ueberfluessig
 		Token akt = tokenArray[curpos];
@@ -100,13 +161,16 @@ public class Parser {
 		if (keller.top()=='#') {
 			return pruefeProgramm();
 		}
+		if (keller.top()=='a') {
+			return pruefeInAnweisung();
+		}
 		if (keller.top()=='i' || keller.top()=='s') {
 			return pruefeInIf();
 		}	
 		if (hasAccess()) {
 			Token akt = tokenArray[curpos];
 			debug("In pruefe InWhile mit Token:"+akt);
-			if (akt.getTyp()==Token.T_Move && keller.top()=='w') {
+			if ((akt.getTyp()==Token.T_Move || akt.getTyp()==Token.T_Bez) && keller.top()=='w') {
 				curpos++;
 				return pruefeInWhile();
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("endewiederhole") && keller.top()=='w') {
@@ -158,6 +222,9 @@ public class Parser {
 		if (keller.top()=='#') {
 			return pruefeProgramm();
 		}
+		if (keller.top()=='a') {
+			return pruefeInAnweisung();
+		}
 		if (keller.top()=='w') {
 			//return false;
 			return pruefeInWhile();
@@ -165,7 +232,7 @@ public class Parser {
 		if (hasAccess()) {
 			Token akt = tokenArray[curpos];
 			debug("In pruefe InIf mit Token:"+akt);
-			if (akt.getTyp()==Token.T_Move) {
+			if ((akt.getTyp()==Token.T_Move || akt.getTyp()==Token.T_Bez)) {
 				curpos++;
 				return pruefeInIf();
 			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("sonst") && keller.top()=='i') {

@@ -1,5 +1,7 @@
 package myka;
 
+import java.util.HashMap;
+
 /**
  * Das Tokenarray (Tokenliste), die vom Parser geprüft wurde, soll hier 
  * interpretiert werden
@@ -19,6 +21,7 @@ public class Interpreter {
 	private static boolean result = true; //Result von Bedingungsanfragen - der Controller 
 											//schreibt nach Aufruf das Ergebnis in dieses Attribut
 	private static int waitms=20; //Waiting ms after every move - Damit man die Ausführung auch sehen kann
+	private static HashMap<String,Integer> sprungmarken = new HashMap<String,Integer>(); //Sprungmarken für Bezeichner
 
 	private Interpreter() { //kein Objekt wird erzeugt - statischse Klasse
 	}
@@ -35,6 +38,7 @@ public class Interpreter {
 		curpos=0; //Startposition der Tokenliste
 		controller = MyKaController.getController(); //Zum Aufruf von Befehlen und Abfrage von Bedingungen
 		Interpreter.tokenliste = tokenliste; //übergebene Tokenliste im Attribut speichern
+		sprungmarken.clear(); //alte Sprungmarken löschen
 		while(curpos < tokenliste.length && !fail) { //Solange kein Fehler und nicht am Ende 
 			executeToken(); //aktuelles Token ausführen
 		}
@@ -61,6 +65,16 @@ public class Interpreter {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+		} else if (akt.getTyp()==Token.T_Bez) { //Anweisung ausführen
+			int pos = curpos; //Position merken
+			Integer t = sprungmarken.get(akt.getWert());
+			if (t == null) {
+				fehler("Bezeichner existiert nicht!");
+			} else {
+				curpos = t;
+				anweisung();
+				curpos = pos; //Und an alter Stelle weiter machen
+			}
 		} else if (akt.getTyp()==Token.T_Cont) { //Steuerungstoken verarbeiten
 			if (akt.getWert().equals("wiederhole")) {
 				curpos++;
@@ -68,6 +82,11 @@ public class Interpreter {
 			} else if (akt.getWert().equals("wenn")) {
 				curpos++;
 				bed();
+			} else if (akt.getWert().equals("Anweisung")) {
+				curpos++;
+				//Sprungmarke anlegen
+				sprungmarken.put(tokenliste[curpos].getWert(), curpos+1);
+				vorlaufPassendes("endeAnweisung");
 			} else { //impossible
 				fehler("Fehler - Ausführen einer nicht ausführbaren Kontrollstruktur");
 			}
@@ -152,6 +171,23 @@ public class Interpreter {
 			vorlaufPassendes("endewiederhole");			
 		} else { //impossible
 			fehler("Schleife falsch!!! - eigentlich impossible nach Parsing");
+		}
+		depth--; //Schachtelungstiefe zurücksetzen
+	}
+
+	/**
+	 * Diese Methode wird aufgerufen sobald eine Anweisung gestartet wird.
+	 * Es arbeitet die in der Anweisung deklarierten Befehle ab. 
+	 * Nachdem die Ausführung der Anweisung beendet ist, wird zur
+	 * ursprünglichen Ausführung zurückgesprungen.
+	 */
+	private static void anweisung() {
+		depth++; //Schachtelungstiefe um eins erhöhen und prüfen
+		if (depth>MAX_REK_DEPTH) fehler("Maximale Rekursionstiefe erreicht!");
+		if (fail) return;
+		//curpos++; // hinter Token "mal" springen und ausführen
+		while(!tokenliste[curpos].getWert().equals("endeAnweisung") && !fail) {
+			executeToken();
 		}
 		depth--; //Schachtelungstiefe zurücksetzen
 	}

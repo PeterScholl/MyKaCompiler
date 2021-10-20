@@ -11,6 +11,12 @@ public class Lexer {
 	private static final int ERR_number_in_word = -2;
 	private static final int ERR_char_in_number = -3;
 	private static final int ERR_terminal_unknown = -4;
+	private static final int ERR_bezUnzulaessig = -5; //Bezeichner nicht zulässig
+	private static String[] conditions = new String[] { "IstWand", "NichtIstWand", "IstMarke", "NichtIstMarke", "IstZiegel", "NichtIstZiegel" };
+	private static String[] moves = new String[] { "Schritt", "LinksDrehen", "RechtsDrehen", "Hinlegen", "Aufheben",
+			"MarkeSetzen", "MarkeLöschen" };
+	private static String[] control = new String[] { "wiederhole", "mal", "solange", "endewiederhole", "wenn", "dann", "sonst",
+			"endewenn", "Beenden", "Anweisung", "endeAnweisung" };
 	private static int status = STAT_GOOD;
 	private static int zustand = Z_Trenner;
 	private static int tokentyp = 0;
@@ -18,13 +24,15 @@ public class Lexer {
 	private static int pos = 0;
 	private static int zeilenpos = 0;
 	private static String terminalstring = "";
-	private static final boolean debug = false;
+	private static final boolean debug = true;
+	private static boolean nextTokenBez = false; // Auf true setzen, wenn das nächste Token ein Bezeichner ist
+	private static List<String> bezeichner = new List<String>();
 
 	private Lexer() { //es wird kein Lexer-Objekt erzeugt - statische Klasse
 	}
 
 	public static void main(String[] args) {
-		if (debug) {
+		if (!debug) {
 		// Testfunktion
 		System.out.println("Zifferntest: " + isZiffer('5') + " a:" + isZiffer('a'));
 		System.out.println("Alphatest: 5:" + isAlpha('5') + " a:" + isAlpha('a') + " R:" + isAlpha('R'));
@@ -51,6 +59,7 @@ public class Lexer {
 		status = STAT_GOOD;
 		aktzeile = 1; // Wir beginnen in Zeile 1
 		pos = 0;
+		bezeichner = new List<String>(); // Sammlung von erzeugten Bezeichnern
 		while (status == STAT_GOOD && pos < text.length()) { // go on lexing
 			if (lexstep(text.charAt(pos++))) { // token muss gebildet werden
 				// Token erzeugen und an die Liste anhaengen
@@ -71,12 +80,19 @@ public class Lexer {
 
 	private static Token generateTokenFromString(String text) {
 		debug("in generateTokenFromString: " + text);
-		if (tokentyp == Z_Alpha) {
-			String[] conditions = new String[] { "IstWand", "NichtIstWand", "IstMarke", "NichtIstMarke", "IstZiegel", "NichtIstZiegel" };
-			String[] moves = new String[] { "Schritt", "LinksDrehen", "RechtsDrehen", "Hinlegen", "Aufheben",
-					"MarkeSetzen", "MarkeLöschen" };
-			String[] control = new String[] { "wiederhole", "mal", "solange", "endewiederhole", "wenn", "dann", "sonst",
-					"endewenn", "Beenden" };
+		if (nextTokenBez) {
+			debug("Bezeichner anlegen");
+			nextTokenBez = false; // zurücksetzen
+			if (tokentyp != Z_Alpha || Hilfsfunktionen.isStringInArray(text, moves) 
+					|| Hilfsfunktionen.isStringInArray(text, conditions)
+					|| Hilfsfunktionen.isStringInArray(text, control)) {
+				status = ERR_bezUnzulaessig;
+				return null;
+			} else {
+				bezeichner.append(text);
+				return new Token(Token.T_Bez, text);
+			}
+		} else if (tokentyp == Z_Alpha) {
 			for (int i = 0; i < moves.length; i++) {
 				debug("Vergleiche mit " + moves[i]);
 				if (text.equals(moves[i])) {
@@ -88,10 +104,22 @@ public class Lexer {
 					return new Token(Token.T_Cond, text);
 				}
 			}
+			// Dieses if muss vor die Prüfung auf control, da Anweisung ein ctrl-Token ist
+			if (text.equals("Anweisung")) { //Neue Anweisung
+				nextTokenBez = true; //Das nächste Token sollte ein Bezeichner sein
+				return new Token(Token.T_Cont, text);				
+			}
 			for (int i = 0; i < control.length; i++) {
 				if (text.equals(control[i])) {
 					return new Token(Token.T_Cont, text);
 				}
+			}
+			bezeichner.toFirst();
+			while (bezeichner.hasAccess()) {
+				if (text.equals(bezeichner.getContent())) {
+					return new Token(Token.T_Bez, text);
+				}
+				bezeichner.next();
 			}
 			status = ERR_terminal_unknown;
 			return null;
