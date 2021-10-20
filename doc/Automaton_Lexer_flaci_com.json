@@ -1,0 +1,198 @@
+﻿{
+  "name": "Lexer",
+  "description": "",
+  "type": "MEALY",
+  "automaton": {
+    "acceptCache": [],
+    "simulationInput": [],
+    "Alphabet": [
+      "b",
+      "t",
+      "z",
+      "{",
+      "}"
+    ],
+    "StackAlphabet": [
+      "|"
+    ],
+    "States": [
+      {
+        "ID": 1,
+        "Name": "q0",
+        "x": 150,
+        "y": 270,
+        "Final": false,
+        "Radius": 30,
+        "Transitions": [
+          {
+            "Source": 1,
+            "Target": 2,
+            "x": 50,
+            "y": 0,
+            "Labels": [
+              [
+                "b",
+                ""
+              ]
+            ]
+          },
+          {
+            "Source": 1,
+            "Target": 1,
+            "x": 0,
+            "y": -150,
+            "Labels": [
+              [
+                "t",
+                ""
+              ]
+            ]
+          },
+          {
+            "Source": 1,
+            "Target": 3,
+            "x": 50,
+            "y": 0,
+            "Labels": [
+              [
+                "z",
+                ""
+              ]
+            ]
+          },
+          {
+            "Source": 1,
+            "Target": 4,
+            "x": 50,
+            "y": 0,
+            "Labels": [
+              [
+                "{",
+                ""
+              ]
+            ]
+          }
+        ],
+        "Start": true
+      },
+      {
+        "ID": 2,
+        "Name": "q1",
+        "x": 450,
+        "y": 120,
+        "Final": false,
+        "Radius": 30,
+        "Transitions": [
+          {
+            "Source": 2,
+            "Target": 2,
+            "x": 0,
+            "y": -150,
+            "Labels": [
+              [
+                "b",
+                ""
+              ]
+            ]
+          },
+          {
+            "Source": 2,
+            "Target": 1,
+            "x": 50,
+            "y": 0,
+            "Labels": [
+              [
+                "t",
+                "Token"
+              ]
+            ]
+          }
+        ],
+        "Start": false
+      },
+      {
+        "ID": 3,
+        "Name": "q2",
+        "x": 480,
+        "y": 440,
+        "Final": false,
+        "Radius": 30,
+        "Transitions": [
+          {
+            "Source": 3,
+            "Target": 3,
+            "x": 0,
+            "y": -150,
+            "Labels": [
+              [
+                "z",
+                ""
+              ]
+            ]
+          },
+          {
+            "Source": 3,
+            "Target": 1,
+            "x": 50,
+            "y": 0,
+            "Labels": [
+              [
+                "t",
+                "Token"
+              ]
+            ]
+          }
+        ],
+        "Start": false
+      },
+      {
+        "ID": 4,
+        "Name": "q3",
+        "x": 80,
+        "y": 560,
+        "Final": false,
+        "Radius": 30,
+        "Transitions": [
+          {
+            "Source": 4,
+            "Target": 4,
+            "x": 10,
+            "y": 20,
+            "Labels": [
+              [
+                "b",
+                ""
+              ],
+              [
+                "t",
+                ""
+              ],
+              [
+                "z",
+                ""
+              ],
+              [
+                "{",
+                ""
+              ]
+            ]
+          },
+          {
+            "Source": 4,
+            "Target": 1,
+            "x": 50,
+            "y": 0,
+            "Labels": [
+              [
+                "}",
+                ""
+              ]
+            ]
+          }
+        ],
+        "Start": false
+      }
+    ],
+    "lastInputs": []
+  }
+}

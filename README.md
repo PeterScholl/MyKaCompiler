@@ -10,6 +10,9 @@ Weitere Anregungen stammen aus dem Projekt [robot-karol-web](https://github.com/
 
 ## Schnellstart zum Ausprobieren
 Jar-Datei herunterladen und starten, im Hilfemenü den Beipsielcode einfügen und diesen dann über das Compilermenü ausführen.
+
+Oder die Datei schachbrett2.txt laden (Dateimenü) und diese ausführen.
+
 Mit dem Robotermenü kann man ein bisschen spielen - die Keycodes (Buchstaben) funktionieren, wenn die Zeichenfläche den Focus hat (anklicken)
 
 ## Befehlsübersicht

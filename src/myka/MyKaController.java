@@ -90,19 +90,8 @@ public class MyKaController {
 			System.err.println("Could not load Images!!");
 			System.exit(-1);
 		}
-		// TODO: Bessere Lösung finden als diesen Kniff!!
-		/*debug("Kniff!");
-		for (int i = 0; i < 4; i++) {
-			robotArea.turnLeft();
-			robotZeichnen();
-			debug("" + robotArea);
-		}
-		robotArea.ablegen();
-		robotZeichnen();
-		robotArea.aufnehmen();
-		robotZeichnen();
-		debug("Kniff beendet");*/
-		//Ende Kniff, damit alle Bilder geladen sind
+		//Hier war ein kleiner Trick der die vier Roboterpositionen schon mal gezeichnet hat
+		//weil das mit den Bilderladen nicht auf anhieb funktioniert hat....
 	}
 
 	public void execute(int command, String[] args) {
