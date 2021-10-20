@@ -7,9 +7,11 @@ package myka;
  *
  */
 public class Interpreter {
+	//Die Schachtelungstiefe ist eigentlich nicht erforderlich solange die Sprache keine rekursiven 
+	//aufrufe ermöglicht
 	private static final int MAX_REK_DEPTH = 20; //Maximale Schachtelungstiefe
 	private static int depth = 0; //aktuelle Schachtelungstiefe
-	private static final boolean debug = false;
+	private static final boolean debug = false; //debug ausgaben ein und ausschalten
 	private static MyKaController controller = null;
 	private static int curpos=0; //aktuelle Position in der Tokenliste
 	private static Token[] tokenliste = null; //Attributspeicher für die Tokenliste
