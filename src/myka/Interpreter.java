@@ -57,21 +57,11 @@ public class Interpreter {
 		debug("ExecToken (Tiefe:"+depth+"): "+akt); //für debug ausgaben
 		if (akt.getTyp()==Token.T_Move) { //ein ausführbares Token
 			controller.execute(MyKaController.RBefehl, new String[] {akt.getWert()});
-			//Nach jeder "Bewegung/Aktion" kurz warten
-			try {
+			//Nach jeder "Bewegung/Aktion" kurz warten - damit man zusehen kann
+			try { // try-catch block nötig, da Thread.sleep eine Exception werfen kann
 				Thread.sleep(waitms);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-			}
-		} else if (akt.getTyp()==Token.T_Bez) { //Anweisung ausführen
-			int pos = curpos; //Position merken
-			Integer t = null;
-			if (t == null) {
-				fehler("Bezeichner existiert nicht!");
-			} else {
-				curpos = t;
-				anweisung();
-				curpos = pos; //Und an alter Stelle weiter machen
 			}
 		} else if (akt.getTyp()==Token.T_Cont) { //Steuerungstoken verarbeiten
 			if (akt.getWert().equals("wiederhole")) {
@@ -80,9 +70,6 @@ public class Interpreter {
 			} else if (akt.getWert().equals("wenn")) {
 				curpos++;
 				bed();
-			} else if (akt.getWert().equals("Anweisung")) {
-				curpos++;
-				vorlaufPassendes("endeAnweisung");
 			} else { //impossible
 				fehler("Fehler - Ausführen einer nicht ausführbaren Kontrollstruktur");
 			}
@@ -118,14 +105,11 @@ public class Interpreter {
 			//Wenn es einen sonst-Block geben sollte - diesen überspringen
 			if (akt.getWert().equals("sonst")) vorlaufPassendes("endewenn");
 		} else { //Bedingung ist falsch
-			//dann Teil überspringen
-			vorlaufPassendes("sonst","endewenn");
-			if (tokenliste[curpos].getWert().equals("sonst")) { //ausführen
-				curpos++; // Hinter das sonst springen
-				while(!tokenliste[curpos].getWert().equals("endewenn") && !fail) {
-					executeToken();
-				}
-			}
+			//TODO: folgende Zeile löschen und durch sinnvolle Abarbeitung ersetzen
+			vorlaufPassendes("endewenn"); //so passiert nichts ;-)
+			// zuerst dann Teil überspringen
+			// wenn der dann-Teil durch sonst beendet wird diesen Teil ausführen
+			// ansonsten fertig
 		}
 		depth--; //Schachtelungstiefe wieder reduzieren
 	}
@@ -144,46 +128,21 @@ public class Interpreter {
 		//Typ der Schleife bestimmen
 		Token akt = tokenliste[curpos];
 		if (akt.getTyp()==Token.T_Zahl) { //Schleifentyp n-mal
-			int anz = akt.getValue(); // Anzahl loops speichern
-			for (int i=0; i<anz; i++) {
-				curpos=pos+2; // hinter Token "mal" springen und ausführen
-				while(!tokenliste[curpos].getWert().equals("endewiederhole") && !fail) {
-					executeToken();
-				}
-			}			
+			// Anzahl loops speichern mal die Ausführung wiederholen, z.B. mit for
+			// die Anzahl steckt im Token
 		} else if (akt.getWert().equals("solange")) { //Schleifentyp solange 
-			curpos=pos+1; // Zur Bedingung springen und übrerprüfen
-			controller.execute(MyKaController.RBefehl, new String[] {tokenliste[curpos].getWert()});
-			while (result && !fail) { //Bedingung zutreffend
-				curpos++; //erstes ausführbares Token nach der Bedingung
-				//Schleifenblock ausführen
-				while(!tokenliste[curpos].getWert().equals("endewiederhole") && !fail) {
-					executeToken();
-				}				
-				curpos=pos+1; // Wieder zur Bedingung springen und erneut überprüfen
-				controller.execute(MyKaController.RBefehl, new String[] {tokenliste[curpos].getWert()});
-			}
-			//Bedingung nicht mehr zutreffend aber curpos (aktuelle Position) ist noch am Anfang der Schleife
-			vorlaufPassendes("endewiederhole");			
+			// TODO: implementieren - du kannst dich an den Kommentaren orientieren oder eigenes ausprobieren
+			// Zur Bedingung springen und übrerprüfen
+			// siehe bed (): controller.execute(MyKaController.RBefehl, new String[] {tokenliste[curpos].getWert()});
+			// solange die Bedingung zutreffend ist
+				//erstes ausführbares Token nach der Bedingung aufsuchen
+				//Schleifenblock ausführen bis endewiederhole
+				// Wieder zur Bedingung springen UND erneut überprüfen
+			// Nach der Schleife ist die Bedingung nicht mehr zutreffend 
+			// aber curpos (aktuelle Position) ist noch am Anfang der Schleife
+			// also bis endewiederhole vorlaufen
 		} else { //impossible
 			fehler("Schleife falsch!!! - eigentlich impossible nach Parsing");
-		}
-		depth--; //Schachtelungstiefe zurücksetzen
-	}
-
-	/**
-	 * Diese Methode wird aufgerufen sobald eine Anweisung gestartet wird.
-	 * Es arbeitet die in der Anweisung deklarierten Befehle ab. 
-	 * Nachdem die Ausführung der Anweisung beendet ist, wird zur
-	 * ursprünglichen Ausführung zurückgesprungen.
-	 */
-	private static void anweisung() {
-		depth++; //Schachtelungstiefe um eins erhöhen und prüfen
-		if (depth>MAX_REK_DEPTH) fehler("Maximale Rekursionstiefe erreicht!");
-		if (fail) return;
-		//curpos++; // hinter Token "mal" springen und ausführen
-		while(!tokenliste[curpos].getWert().equals("endeAnweisung") && !fail) {
-			executeToken();
 		}
 		depth--; //Schachtelungstiefe zurücksetzen
 	}
@@ -226,7 +185,7 @@ public class Interpreter {
 	}
 
 	/**
-	 * Hier kann der Kontroller das Ergebnis der Prüfung einer
+	 * Über diese Methode kann bzw. wird der Controller das Ergebnis der Prüfung einer
 	 * Bedingung eintragen
 	 * @param res
 	 */
@@ -234,6 +193,12 @@ public class Interpreter {
 		result=res;
 	}
 	
+	/**
+	 * Diese methode dient dazu, den Ablauf zu debuggen. Stelle das Attribut
+	 * debug auf true und übergib an jeder Stelle, die du für Interessant hältst
+	 * eine Information an debug mit: debug("Jetzt passiert das und das");
+	 * @param text
+	 */
 	private static void debug(String text) {
 		if (debug) System.out.println("I:"+text);
 	}
@@ -254,7 +219,7 @@ public class Interpreter {
 	
 	/**
 	 * Hier kann die Wartezeit zwischen einzelnen Aktionen
-	 * eingestellt werden
+	 * eingestellt werden (wird. u.a. vom View benutzt)
 	 * @param ms
 	 */
 	public static void setWaitTime(int ms) {
