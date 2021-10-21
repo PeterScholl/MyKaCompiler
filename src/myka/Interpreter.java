@@ -2,6 +2,10 @@ package myka;
 
 import java.util.HashMap;
 
+// TODO: Dieser Interpreter kann Basistokens verarbeiten (Schritt, Drehen, ...)
+// TODO: Finde alle TODOs in diesem Quelltext und fülle Sie sinnvoll
+// TODO: Zusatzaufgabe - implementiere selbst erstellte Anweisungen
+
 /**
  * Das Tokenarray (Tokenliste), die vom Parser geprüft wurde, soll hier 
  * interpretiert werden
@@ -13,7 +17,7 @@ public class Interpreter {
 	// solange die Sprache keine rekursiven Aufrufe ermöglicht
 	private static final int MAX_REK_DEPTH = 200; //Maximale Schachtelungstiefe
 	private static int depth = 0; //aktuelle Schachtelungstiefe
-	private static final boolean debug = false; //debug ausgaben ein und ausschalten
+	private static final boolean debug = true; //debug ausgaben ein und ausschalten
 	private static MyKaController controller = null; //Zum Zugriff auf den Controller
 	private static int curpos=0; //aktuelle Position in der Tokenliste
 	private static Token[] tokenliste = null; //Attributspeicher für die Tokenliste
@@ -55,7 +59,7 @@ public class Interpreter {
 		if (fail) return; //Wenn Fehlerzustand - keine weitere Ausführung
 		Token akt = tokenliste[curpos]; //Aktuelles Token in Zwischenspeicher
 		debug("ExecToken (Tiefe:"+depth+"): "+akt); //für debug ausgaben
-		if (akt.getTyp()==Token.T_Move) { //ein ausführbares Token
+		if (akt.getTyp()==Token.T_Typ3) { //ein ausführbares Token
 			controller.execute(MyKaController.RBefehl, new String[] {akt.getWert()});
 			//Nach jeder "Bewegung/Aktion" kurz warten - damit man zusehen kann
 			try { // try-catch block nötig, da Thread.sleep eine Exception werfen kann
@@ -63,7 +67,7 @@ public class Interpreter {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-		} else if (akt.getTyp()==Token.T_Cont) { //Steuerungstoken verarbeiten
+		} else if (akt.getTyp()==Token.T_Typ4) { //Steuerungstoken verarbeiten
 			if (akt.getWert().equals("wiederhole")) {
 				curpos++;
 				loop();	
@@ -127,7 +131,9 @@ public class Interpreter {
 		int pos = curpos; //aktuelle Position für Loop speichern
 		//Typ der Schleife bestimmen
 		Token akt = tokenliste[curpos];
-		if (akt.getTyp()==Token.T_Zahl) { //Schleifentyp n-mal
+		if (akt.getTyp()==Token.T_Typ1) { //Schleifentyp n-mal
+			// TODO: folgende Zeile löschen und durch passenden Code ersetzen (siehe Kommentare)
+			vorlaufPassendes("endewiederhole");
 			// Anzahl loops speichern mal die Ausführung wiederholen, z.B. mit for
 			// die Anzahl steckt im Token
 		} else if (akt.getWert().equals("solange")) { //Schleifentyp solange 
@@ -141,6 +147,7 @@ public class Interpreter {
 			// Nach der Schleife ist die Bedingung nicht mehr zutreffend 
 			// aber curpos (aktuelle Position) ist noch am Anfang der Schleife
 			// also bis endewiederhole vorlaufen
+			vorlaufPassendes("endewiederhole");
 		} else { //impossible
 			fehler("Schleife falsch!!! - eigentlich impossible nach Parsing");
 		}
@@ -166,7 +173,7 @@ public class Interpreter {
 		while (!tokenliste[curpos].getWert().equals(string1) && !tokenliste[curpos].getWert().equals(oder) ) {
 			curpos++; //zum nächsten Token springen
 			Token akt = tokenliste[curpos];
-			if (akt.getTyp()==Token.T_Cont) { //es könnte eine neue Verschachtelung sein
+			if (akt.getTyp()==Token.T_Typ4) { //es könnte eine neue Verschachtelung sein
 				if (akt.getWert().equals("wenn")) { //neue Bedinung
 					vorlaufPassendes("endewenn"); //dazu passendes Ende suchen
 					curpos++; //dieses "endewenn" darf nicht doppelt gefunden werden

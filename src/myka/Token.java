@@ -1,11 +1,11 @@
 package myka;
 
 public class Token {
-	public static final int T_Zahl = 1;
-	public static final int T_Cond = 2;
-	public static final int T_Move = 3;
-	public static final int T_Cont = 4; //Control Token
-	public static final int T_Bez = 5; //Bezeichner
+	//TODO Sinnvolle Tokentypbezeichnungen eintragen
+	public static final int T_Typ1 = 1;
+	public static final int T_Typ2 = 2;
+	public static final int T_Typ3 = 3;
+	public static final int T_Typ4 = 4; //Control Token
 	private static final int T_Unknown = 0; //unbekannter typ ;-)
 	
 	private int typ = T_Unknown;
@@ -16,7 +16,7 @@ public class Token {
 	public Token(int typ, String wert) {
 		this.typ=typ;
 		this.wert = wert;
-		if (typ==T_Zahl) {
+		if (typ==T_Typ1) {
 			value = Integer.parseInt(wert);
 		}
 	}

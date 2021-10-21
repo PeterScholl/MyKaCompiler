@@ -275,10 +275,9 @@ public class MyKaView implements MouseListener, KeyListener {
 		JMenuItem srcBeispielEintrag = new JMenuItem("Beispielcode einfügen");
 		srcBeispielEintrag.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String bsp = "{Beispielcode - dies ist ein Kommentar}\n" + "wiederhole 4 mal\n"
-						+ "  wiederhole solange NichtIstWand\n" + "    Hinlegen\n    Schritt\n"
-						+ "    wenn IstMarke dann\n" + "      MarkeLöschen\n" + "    sonst\n" + "      MarkeSetzen\n"
-						+ "    endewenn\n" + "  endewiederhole\n" + "  LinksDrehen\n" + "endewiederhole\n";
+				String bsp = "{Beispielcode - dies ist ein Kommentar}\n"
+						+ "    Schritt\n"
+						+ "  LinksDrehen\n";
 				textareaSRC.setText(bsp);
 			}
 		});
