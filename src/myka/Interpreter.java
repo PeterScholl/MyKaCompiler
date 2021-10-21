@@ -9,26 +9,25 @@ import java.util.HashMap;
  *
  */
 public class Interpreter {
-	//Die Schachtelungstiefe ist eigentlich nicht erforderlich solange die Sprache keine rekursiven 
-	//aufrufe ermöglicht
+	//Die Verwendung der maximalen Schachtelungstiefe ist eigentlich nicht erforderlich 
+	// solange die Sprache keine rekursiven Aufrufe ermöglicht
 	private static final int MAX_REK_DEPTH = 200; //Maximale Schachtelungstiefe
 	private static int depth = 0; //aktuelle Schachtelungstiefe
 	private static final boolean debug = false; //debug ausgaben ein und ausschalten
-	private static MyKaController controller = null;
+	private static MyKaController controller = null; //Zum Zugriff auf den Controller
 	private static int curpos=0; //aktuelle Position in der Tokenliste
 	private static Token[] tokenliste = null; //Attributspeicher für die Tokenliste
 	private static boolean fail = false; //Wenn ein Fehler eingetreten ist - bricht die Bearbeitung ab
 	private static boolean result = true; //Result von Bedingungsanfragen - der Controller 
 											//schreibt nach Aufruf das Ergebnis in dieses Attribut
 	private static int waitms=20; //Waiting ms after every move - Damit man die Ausführung auch sehen kann
-	private static HashMap<String,Integer> sprungmarken = new HashMap<String,Integer>(); //Sprungmarken für Bezeichner
-
+	
 	private Interpreter() { //kein Objekt wird erzeugt - statischse Klasse
 	}
 	
 	/**
 	 * Diese Methode startet die Ausführung der Tokenliste und setzt 
-	 * ggf. die (statischen) Attribute der Klasse auf die 
+	 * ggf. die (static-) Attribute der Klasse auf die 
 	 * Ausgangswerte
 	 * @param tokenliste - Abzuarbeitende Tokenliste (hoffentlich vom Parser geprüft)
 	 */
@@ -38,7 +37,6 @@ public class Interpreter {
 		curpos=0; //Startposition der Tokenliste
 		controller = MyKaController.getController(); //Zum Aufruf von Befehlen und Abfrage von Bedingungen
 		Interpreter.tokenliste = tokenliste; //übergebene Tokenliste im Attribut speichern
-		sprungmarken.clear(); //alte Sprungmarken löschen
 		while(curpos < tokenliste.length && !fail) { //Solange kein Fehler und nicht am Ende 
 			executeToken(); //aktuelles Token ausführen
 		}
@@ -67,7 +65,7 @@ public class Interpreter {
 			}
 		} else if (akt.getTyp()==Token.T_Bez) { //Anweisung ausführen
 			int pos = curpos; //Position merken
-			Integer t = sprungmarken.get(akt.getWert());
+			Integer t = null;
 			if (t == null) {
 				fehler("Bezeichner existiert nicht!");
 			} else {
@@ -84,8 +82,6 @@ public class Interpreter {
 				bed();
 			} else if (akt.getWert().equals("Anweisung")) {
 				curpos++;
-				//Sprungmarke anlegen
-				sprungmarken.put(tokenliste[curpos].getWert(), curpos+1);
 				vorlaufPassendes("endeAnweisung");
 			} else { //impossible
 				fehler("Fehler - Ausführen einer nicht ausführbaren Kontrollstruktur");
