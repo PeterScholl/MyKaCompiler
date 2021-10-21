@@ -35,6 +35,10 @@ Steuerung
 * wiederhole solange {Bedingung} {Anweisungen} endewiederhole
 * wenn {Bed} dann {Anweisungen} [sonst {Anweisungen}]
 
+eigene Anweisung (müssen vor dem ersten Aufrufen angelegt werden)
+* Anweisung {Bezeichner} endeAnweisung
+* {Bezeichner}
+
 **Kommentare** können in geschweiften Klammern eingefügt werden {Kommentar} und werden ignoriert. Sie dürfen jedoch nicht unmittelbar an eine Anweisung/Bedingung/Steuerung angehängt werden
 
 ## Beispielprogramm
