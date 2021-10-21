@@ -6,7 +6,7 @@ Dieses Projekt dient in erster Linie dazu, einen Lexer und einen Parser als einf
 
 Die Idee habe ich von der Webseite [inf-schule.de](https://www.inf-schule.de/automaten-sprachen/interpretercompiler/syntaxsemantikueberblick/einstieg_myka).
 
-Weitere Anregungen stammen aus dem Projekt [robot-karol-web](https://github.com/Entkenntnis/robot-karol-web) hier auf github
+Weitere Anregungen stammen aus dem Projekt [robot-karol-web](https://github.com/Entkenntnis/robot-karol-web) hier auf github. Von dort stammen auch die Bilder (Roboter und Ziegel)
 
 ## Schnellstart zum Ausprobieren
 Jar-Datei herunterladen und starten, im Hilfemenü den Beipsielcode einfügen und diesen dann über das Compilermenü ausführen.
