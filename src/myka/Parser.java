@@ -193,7 +193,7 @@ public class Parser {
 				return false;
 			}
 		}
-		fehlertext = "Programm endet in Schleife";
+		fehlertext = fehlertextMitToken("Programm endet in Schleife");
 		return false; 
 	}
 	private static boolean pruefeOpenIf() {
@@ -210,10 +210,10 @@ public class Parser {
 				if (!hasAccess()) return eofWhileParsing();
 				return pruefeInIf();
 			}
-			fehlertext = "if ohne dann!";
+			fehlertext = fehlertextMitToken("wenn ohne dann!");
 			return false;
 		} else {
-			fehlertext = "if Abfrage nicht richtig erstellt";
+			fehlertext = fehlertextMitToken("wenn-Verzeweigung nicht richtig erstellt");
 			return false;
 		}
 	}
@@ -281,6 +281,14 @@ public class Parser {
 	
 	private static boolean hasAccess() {
 		return curpos < tokenArray.length;
+	}
+	
+	private static String fehlertextMitToken(String text) {
+		if (hasAccess()) {
+			return text+": "+tokenArray[curpos];
+		} else {
+			return text;
+		}
 	}
 	
 	
