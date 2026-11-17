@@ -1,0 +1,74 @@
+{ Programm: Ein Schwimmbad bauen
+Karol soll in der linken, hinteren Ecke stehen
+mit Blick nach Vorne = Süden }
+
+{ Anweisung Becken bauen }
+Anweisung BaueBecken
+    wiederhole 12 mal
+    wiederhole solange NichtIstWand
+      Hinlegen
+      Schritt
+    endewiederhole
+    LinksDrehen
+  endewiederhole
+endeAnweisung
+
+{ Anweisung Becken abreissen }
+Anweisung AbbauenBecken
+  wiederhole 12 mal
+    wiederhole solange NichtIstWand
+      Aufheben
+      Schritt
+    endewiederhole
+    RechtsDrehen
+  endewiederhole
+endeAnweisung
+
+Anweisung Umdrehen
+  LinksDrehen
+  LinksDrehen
+endeAnweisung
+
+{ Anweisung Becken durchschwimmen }
+Anweisung Schwimmen
+  wiederhole 3 mal Hinlegen endewiederhole
+  Schritt
+  wiederhole solange NichtIstZiegel
+    wiederhole 3 mal Hinlegen endewiederhole
+    Schritt
+    Umdrehen
+    wiederhole 3 mal Aufheben endewiederhole
+    Umdrehen
+  endewiederhole
+  Schritt
+  Umdrehen
+  wiederhole 3 mal Aufheben endewiederhole
+  Umdrehen
+endeAnweisung
+
+Anweisung Hauptteil
+  BaueBecken
+  { zur Mitte bewegen }
+  LinksDrehen
+  wiederhole 2 mal Schritt endewiederhole
+  RechtsDrehen
+  { jetzt hinüber schwimmen }
+  Schwimmen
+  { zur Ecke bewegen }
+  RechtsDrehen
+  wiederhole 2 mal Schritt endewiederhole
+  RechtsDrehen
+
+  AbbauenBecken
+  { zurück zur Ausgangsposition }
+  wiederhole solange NichtIstWand
+    Schritt
+  endewiederhole
+  LinksDrehen LinksDrehen
+endeAnweisung
+
+wiederhole 4 mal
+  Hauptteil
+endewiederhole
+
+
