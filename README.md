@@ -9,11 +9,33 @@ Die Idee habe ich von der Webseite [inf-schule.de](https://www.inf-schule.de/aut
 Weitere Anregungen stammen aus dem Projekt [robot-karol-web](https://github.com/Entkenntnis/robot-karol-web) hier auf github. Von dort stammen auch die Bilder (Roboter und Ziegel)
 
 ## Schnellstart zum Ausprobieren
-Jar-Datei herunterladen und starten, im Hilfemenü den Beipsielcode einfügen und diesen dann über das Compilermenü ausführen.
+Im Ordner `release/` liegen zwei fertige Jar-Dateien:
+* `myka.jar` – für Java 21 oder neuer
+* `myka-java8.jar` – für ältere Rechner (ab Java 8)
+
+Starten per Doppelklick oder im Terminal:
+~~~~
+java -jar release/myka.jar
+~~~~
+
+Im Hilfemenü den Beispielcode einfügen und diesen dann über das Compilermenü ausführen.
 
 Oder die Datei schachbrett2.txt laden (Dateimenü) und diese ausführen.
 
 Mit dem Robotermenü kann man ein bisschen spielen - die Keycodes (Buchstaben) funktionieren, wenn die Zeichenfläche den Focus hat (anklicken)
+
+## Jar-Dateien neu bauen
+Im Hauptordner des Repositorys (benötigt ein JDK ab Version 21):
+~~~~
+rm -rf build && javac -encoding UTF-8 --release 21 -d build src/myka/*.java
+cp -r src/myka/img build/myka/
+jar --create --file release/myka.jar --main-class myka.MyKaController -C build .
+
+rm -rf build && javac -encoding UTF-8 --release 8 -d build src/myka/*.java
+cp -r src/myka/img build/myka/
+jar --create --file release/myka-java8.jar --main-class myka.MyKaController -C build .
+~~~~
+Wichtig: Die Quelltexte sind UTF-8 (`MarkeLöschen`), und die Bilder müssen im Jar unter `myka/img/` liegen. Die Warnung „Quellwert 8 ist veraltet“ beim zweiten Bau kann ignoriert werden. Der Ordner `build/` wird von git ignoriert.
 
 ## Befehlsübersicht
 Befehle/Anweisungen: 
