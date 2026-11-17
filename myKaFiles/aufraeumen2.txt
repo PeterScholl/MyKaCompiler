@@ -1,0 +1,78 @@
+Anweisung DreheUm
+  LinksDrehen
+  LinksDrehen
+endeAnweisung
+
+Anweisung MarkiereVorletztesFeld
+    LinksDrehen
+    wiederhole solange NichtIstWand Schritt endewiederhole
+    DreheUm
+    Schritt
+    MarkeSetzen
+    wiederhole solange NichtIstWand Schritt endewiederhole
+    LinksDrehen
+endeAnweisung
+
+Anweisung LinieZiehen
+  MarkiereVorletztesFeld
+  wiederhole solange NichtIstWand
+    Schritt
+    MarkiereVorletztesFeld
+  endewiederhole
+endeAnweisung
+
+Anweisung Aufbauen
+  LinieZiehen
+endeAnweisung
+
+{Aufbauen}
+
+{Aufbau beendet}
+
+
+Anweisung GeheZuZiegelOderMarke
+  wiederhole 10 mal
+    wenn NichtIstZiegel dann 
+       wenn NichtIstMarke dann
+         Schritt
+       endewenn
+    endewenn
+  endewiederhole
+endeAnweisung
+
+Anweisung BringeMarkeAnsEnde
+  GeheZuZiegelOderMarke
+  wenn NichtIstMarke dann
+    wenn IstZiegel dann
+      Aufheben
+      BringeMarkeAnsEnde
+      wiederhole solange NichtIstMarke
+        Schritt
+      endewiederhole
+      Hinlegen
+    endewenn
+  endewenn
+endeAnweisung
+
+
+
+
+Anweisung BearbeiteZeile
+  LinksDrehen
+  BringeMarkeAnsEnde
+  LinksDrehen LinksDrehen
+  wiederhole solange NichtIstWand Schritt endewiederhole
+  LinksDrehen
+endeAnweisung
+
+
+
+
+
+
+wiederhole solange NichtIstWand
+  BearbeiteZeile
+  Schritt
+endewiederhole
+BearbeiteZeile
+

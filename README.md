@@ -8,6 +8,17 @@ Die Idee habe ich von der Webseite [inf-schule.de](https://www.inf-schule.de/aut
 
 Weitere Anregungen stammen aus dem Projekt [robot-karol-web](https://github.com/Entkenntnis/robot-karol-web) hier auf github. Von dort stammen auch die Bilder (Roboter und Ziegel)
 
+## Ordnerstruktur
+| Ordner | Inhalt |
+|---|---|
+| `src/` | Musterlösung (Lexer, Parser, Interpreter und Oberfläche), Bilder in `src/myka/img/` |
+| `schueler/` | Startpaket für SchülerInnen: Vorlagen für Lexer, Parser und Interpreter mit TODOs, dazu `schachbrett2.txt` als Abschlusstest |
+| `doc/` | Unterrichtsmaterial: `Arbeitsblatt.md` (Aufgaben für SchülerInnen), `Lehrerhandreichung.md` (Erwartungshorizont, Prüffälle) und das alte Arbeitsblatt (`.odt`/`.pdf`) |
+| `release/` | fertige Jar-Dateien zum Ausprobieren |
+| `myKaFiles/` | weitere Beispielprogramme (Datei → Datei öffnen) und Welten (Datei → Welt öffnen) |
+
+**Für Lehrkräfte:** SchülerInnen bekommen nur den Ordner `schueler/` und das Arbeitsblatt. Wie das Projekt in IntelliJ eingerichtet wird, steht in Aufgabe 0 des Arbeitsblatts.
+
 ## Schnellstart zum Ausprobieren
 Im Ordner `release/` liegen zwei fertige Jar-Dateien:
 * `myka.jar` – für Java 21 oder neuer

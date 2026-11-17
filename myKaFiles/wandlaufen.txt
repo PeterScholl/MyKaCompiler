@@ -1,0 +1,4 @@
+wiederhole 4 mal
+  wiederhole solange NichtIstWand Schritt endewiederhole
+  LinksDrehen
+endewiederhole

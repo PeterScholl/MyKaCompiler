@@ -1,0 +1,20 @@
+{Beispielcode - dies ist ein Kommentar}
+Anweisung DreheUm
+  LinksDrehen
+  LinksDrehen
+endeAnweisung
+wiederhole 4 mal
+  wiederhole solange NichtIstWand
+    Hinlegen
+    Schritt
+    wenn IstMarke dann
+      MarkeLöschen
+    sonst
+      MarkeSetzen
+    endewenn
+  endewiederhole
+  LinksDrehen
+endewiederhole
+DreheUm
+
+
