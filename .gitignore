@@ -2,6 +2,7 @@
 *.txt
 !/schachbrett2.txt
 !/schueler/*.txt
+!/myKaFiles/*.txt
 *.xml
 *.csv
 *.ods

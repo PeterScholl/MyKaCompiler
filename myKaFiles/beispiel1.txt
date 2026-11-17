@@ -1,0 +1,12 @@
+wiederhole 4 mal
+  wiederhole solange NichtIstWand
+    Hinlegen
+    Schritt
+    wenn IstMarke dann
+      MarkeLöschen 
+    sonst 
+      MarkeSetzen 
+    endewenn
+  endewiederhole
+  LinksDrehen
+endewiederhole

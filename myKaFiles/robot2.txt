@@ -1,0 +1,8 @@
+wiederhole 3 mal Schritt 
+wenn IstWand dann LinksDrehen endewenn
+endewiederhole
+Schritt
+wenn IstWand dann RechtsDrehen endewenn
+wiederhole solange NichtIstWand Schritt endewiederhole
+
+
