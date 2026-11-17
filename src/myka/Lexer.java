@@ -1,209 +1,261 @@
 package myka;
 
+/**
+ * Der Lexer der Sprache MyKa.
+ * Er liest den Quelltext Zeichen für Zeichen (als endlicher Automat) und
+ * erzeugt daraus eine Liste von Token.
+ *
+ * Alles, was mit "TODO" markiert ist, ergänzt du. Der Rest ist fertig.
+ *
+ * Diese Klasse ist statisch: Es wird nie ein Lexer-Objekt erzeugt.
+ */
 public class Lexer {
-	private static final int Z_Trenner = 0; // Zustand Trenner
-	private static final int Z_Alpha = 1; // Wort wird gebildet
-	private static final int Z_Zahl = 2; // Zahl wird gebildet
-	private static final int Z_Kommentar = 3; // Mitten in einem Kommentar
-	private static final int Z_Sink = 4; // Fehlersenke
+	// ===== Fehlercodes (fertig) =========================================
 	private static final int STAT_GOOD = 0;
-	private static final int ERR_charunknown = -1;
-	private static final int ERR_number_in_word = -2;
-	private static final int ERR_char_in_number = -3;
-	private static final int ERR_terminal_unknown = -4;
-	private static final int ERR_bezUnzulaessig = -5; //Bezeichner nicht zulässig
-	private static String[] conditions = new String[] { "IstWand", "NichtIstWand", "IstMarke", "NichtIstMarke", "IstZiegel", "NichtIstZiegel" };
-	private static String[] moves = new String[] { "Schritt", "LinksDrehen", "RechtsDrehen", "Hinlegen", "Aufheben",
-			"MarkeSetzen", "MarkeLöschen" };
-	private static String[] control = new String[] { "wiederhole", "mal", "solange", "endewiederhole", "wenn", "dann", "sonst",
-			"endewenn", "Beenden", "Anweisung", "endeAnweisung" };
-	private static int status = STAT_GOOD;
-	private static int zustand = Z_Trenner;
-	private static int tokentyp = 0;
-	private static int aktzeile = 0;
-	private static int pos = 0;
-	private static int zeilenpos = 0;
-	private static String terminalstring = "";
-	private static final boolean debug = false;
-	private static boolean nextTokenBez = false; // Auf true setzen, wenn das nächste Token ein Bezeichner ist
-	private static List<String> bezeichner = new List<String>();
+	private static final int ERR_charunknown = -1; // unbekanntes Zeichen
+	private static final int ERR_number_in_word = -2; // Ziffer in einem Wort
+	private static final int ERR_char_in_number = -3; // Buchstabe in einer Zahl
+	private static final int ERR_terminal_unknown = -4; // unbekanntes Wort
+	private static final int ERR_bezUnzulaessig = -5; // Name für eigene Anweisung nicht erlaubt
+	private static final int ERR_zahl_zu_gross = -6; // Zahl passt nicht in einen int
 
-	private Lexer() { //es wird kein Lexer-Objekt erzeugt - statische Klasse
+	// ===== Schlüsselwörter der Sprache (fertig) ==========================
+	private static final String[] conditions = new String[] { "IstWand", "NichtIstWand", "IstMarke", "NichtIstMarke",
+			"IstZiegel", "NichtIstZiegel" };
+	private static final String[] moves = new String[] { "Schritt", "LinksDrehen", "RechtsDrehen", "Hinlegen",
+			"Aufheben", "MarkeSetzen", "MarkeLöschen" };
+	private static final String[] control = new String[] { "wiederhole", "mal", "solange", "endewiederhole", "wenn",
+			"dann", "sonst", "endewenn", "Anweisung", "endeAnweisung" };
+
+	// ===== Hilfsattribute (fertig) ======================================
+	private static int status = STAT_GOOD; // STAT_GOOD oder ein ERR_...-Code
+	private static int aktzeile = 1; // aktuelle Zeile im Quelltext (beginnt bei 1)
+	private static int pos = 0; // Index des NÄCHSTEN zu lesenden Zeichens im Text
+	private static int zeilenpos = 0; // Index des ersten Zeichens der aktuellen Zeile
+	private static int fehlerzeile = 0; // Zeile, in der ein Wort-Fehler erkannt wurde
+	private static String fehlerwort = ""; // das Wort, bei dem ein Wort-Fehler auftrat
+	private static boolean nextTokenBez = false; // true: das nächste Wort ist der Name einer eigenen Anweisung
+	private static List<String> bezeichner = new List<String>(); // alle bisher definierten Namen eigener Anweisungen
+	private static final boolean debug = false;
+
+	// ===== Dein Teil: Zustand und Zwischenspeicher ======================
+	private static final int Z_Trenner = 0; // zwischen zwei Wörtern (Startzustand)
+	private static final int Z_Alpha = 1; // ein Wort wird gelesen
+	private static final int Z_Zahl = 2; // eine Zahl wird gelesen
+	private static final int Z_Kommentar = 3; // mitten in einem Kommentar
+	private static final int Z_Sink = 4; // Fehlersenke
+	private static int zustand = Z_Trenner;
+
+	private static String terminalstring = "";
+	private static int startZeile = 0, startSpalte = 0; // Beginn des aktuellen Wortes bzw. der aktuellen Zahl
+
+	private Lexer() { // es wird kein Lexer-Objekt erzeugt - statische Klasse
 	}
 
 	public static void main(String[] args) {
 		if (debug) {
-		// Testfunktion
-		System.out.println("Zifferntest: " + isZiffer('5') + " a:" + isZiffer('a'));
-		System.out.println("Alphatest: 5:" + isAlpha('5') + " a:" + isAlpha('a') + " R:" + isAlpha('R'));
-		System.out.println("Trennertest: 5:" + isTrenner('5') + " \\n:" + isTrenner('\n') + " ' ':" + isTrenner(' '));
-		String test = "Schritt     LinksDrehen\n234";
-		List<Token> temp = lex(test);
-		if (temp != null) {
-			temp.toFirst();
-			while (temp.hasAccess()) {
-				System.out.println(temp.getContent());
-				temp.next();
+			// Testfunktion: hier kannst du den Lexer ohne Oberfläche ausprobieren
+			System.out.println("Zifferntest: " + isZiffer('5') + " a:" + isZiffer('a'));
+			System.out.println("Alphatest: 5:" + isAlpha('5') + " a:" + isAlpha('a') + " R:" + isAlpha('R'));
+			System.out.println("Trennertest: 5:" + isTrenner('5') + " \\n:" + isTrenner('\n') + " ' ':" + isTrenner(' '));
+			String test = "Schritt     LinksDrehen\n234";
+			List<Token> temp = lex(test);
+			if (temp != null) {
+				temp.toFirst();
+				while (temp.hasAccess()) {
+					System.out.println(temp.getContent());
+					temp.next();
+				}
 			}
-		}
 		} else {
-			MyKaController.main(args);
+			MyKaController.main(args); // startet die Oberfläche
 		}
-	}
-
-	public static List<Token> lex(String text) {
-		List<Token> tokenlist = new List<Token>();
-		// Leerzeichen anhaengen um alle Terminale richtig zu interpretieren
-		text += " ";
-		zustand = 0;
-		status = STAT_GOOD;
-		aktzeile = 1; // Wir beginnen in Zeile 1
-		pos = 0;
-		bezeichner = new List<String>(); // Sammlung von erzeugten Bezeichnern
-		while (status == STAT_GOOD && pos < text.length()) { // go on lexing
-			if (lexstep(text.charAt(pos++))) { // token muss gebildet werden
-				// Token erzeugen und an die Liste anhaengen
-				Token t = generateTokenFromString(terminalstring);
-				if (t != null) {
-					t.setZeile(aktzeile);
-					t.setPos(pos-zeilenpos);
-					terminalstring = ""; // String zuruecksetzen
-					tokenlist.append(t);
-				}
-				debug("Token generiert: " + t);
-			}
-		}
-		if (status != STAT_GOOD)
-			return null;
-		return tokenlist;
-	}
-
-	private static Token generateTokenFromString(String text) {
-		debug("in generateTokenFromString: " + text);
-		if (nextTokenBez) {
-			debug("Bezeichner anlegen");
-			nextTokenBez = false; // zurücksetzen
-			if (tokentyp != Z_Alpha || Hilfsfunktionen.isStringInArray(text, moves) 
-					|| Hilfsfunktionen.isStringInArray(text, conditions)
-					|| Hilfsfunktionen.isStringInArray(text, control)) {
-				status = ERR_bezUnzulaessig;
-				return null;
-			} else {
-				bezeichner.append(text);
-				return new Token(Token.T_Bez, text);
-			}
-		} else if (tokentyp == Z_Alpha) {
-			for (int i = 0; i < moves.length; i++) {
-				debug("Vergleiche mit " + moves[i]);
-				if (text.equals(moves[i])) {
-					return new Token(Token.T_Move, text);
-				}
-			}
-			for (int i = 0; i < conditions.length; i++) {
-				if (text.equals(conditions[i])) {
-					return new Token(Token.T_Cond, text);
-				}
-			}
-			// Dieses if muss vor die Prüfung auf control, da Anweisung ein ctrl-Token ist
-			if (text.equals("Anweisung")) { //Neue Anweisung
-				nextTokenBez = true; //Das nächste Token sollte ein Bezeichner sein
-				return new Token(Token.T_Cont, text);				
-			}
-			for (int i = 0; i < control.length; i++) {
-				if (text.equals(control[i])) {
-					return new Token(Token.T_Cont, text);
-				}
-			}
-			bezeichner.toFirst();
-			while (bezeichner.hasAccess()) {
-				if (text.equals(bezeichner.getContent())) {
-					return new Token(Token.T_Bez, text);
-				}
-				bezeichner.next();
-			}
-			status = ERR_terminal_unknown;
-			return null;
-		} else if (tokentyp == Z_Zahl) {
-			return new Token(Token.T_Zahl, text);
-		}
-		return null;
 	}
 
 	/**
-	 * Der Text wird zeichenweise gelext. Solange kein Fehler auftritt wird der
-	 * Wordstring mit den Zeichen ergaenzt, die keien Leerzeichen sind
-	 * 
-	 * @param c zu lexendes Zeichen
-	 * @return true wenn ein Token erzeugt werden muss
+	 * Zerlegt den Quelltext in eine Liste von Token.
+	 *
+	 * @param text der Quelltext
+	 * @return die Tokenliste oder null, wenn ein Fehler aufgetreten ist (dann
+	 *         steht der Fehler in status und getStatusText() beschreibt ihn)
+	 */
+	public static List<Token> lex(String text) {
+		// --- Startwerte (fertig) ---
+		status = STAT_GOOD;
+		aktzeile = 1;
+		pos = 0;
+		zeilenpos = 0;
+		nextTokenBez = false;
+		bezeichner = new List<String>();
+
+		List<Token> tokenliste = new List<Token>();
+		zustand = Z_Trenner;
+		terminalstring = "";
+		text += " "; // Trennzeichen anhängen, damit auch das letzte Token fertig wird
+		while (status == STAT_GOOD && pos < text.length()) {
+			char c = text.charAt(pos++);
+			if (lexstep(c)) { // ein Token muss gebildet werden
+				Token t = erzeugeToken(terminalstring);
+				if (t != null) {
+					t.setZeile(startZeile);
+					t.setPos(startSpalte);
+					tokenliste.append(t);
+				}
+				terminalstring = ""; // Zwischenspeicher zurücksetzen
+			}
+			zeilenzaehlung(c);
+		}
+		if (status != STAT_GOOD) {
+			System.err.println(getStatusText());
+			return null;
+		}
+		return tokenliste;
+	}
+
+	/**
+	 * Zählt Zeilenwechsel (fertig). Rufe diese Methode in lex() für jedes Zeichen
+	 * auf, nachdem es verarbeitet wurde.
+	 */
+	private static void zeilenzaehlung(char c) {
+		if (c == '\n') {
+			aktzeile++;
+			zeilenpos = pos; // pos zeigt schon hinter das '\n': hier beginnt die nächste Zeile
+		}
+	}
+
+	private static void fehler(int code) {
+		status = code;
+		zustand = Z_Sink;
+	}
+
+	/**
+	 * Der Lexer als Automat: verarbeitet EIN Zeichen und wechselt dabei den
+	 * Zustand.
+	 *
+	 * @param c das Zeichen
+	 * @return true, wenn jetzt ein Token entstehen muss (also wenn ein Wort oder
+	 *         eine Zahl zu Ende ist), sonst false
 	 */
 	private static boolean lexstep(char c) {
 		debug("Lexing char: " + c + " Zustand: " + zustand);
-		if (c == '\n') {
-			aktzeile++;
-			zeilenpos = pos;
-		}
 		switch (zustand) {
-		case Z_Kommentar: // Im Kommentar 
-			if (c=='}') zustand = Z_Trenner;
+		case Z_Kommentar: // im Kommentar: alles ignorieren bis zur schließenden Klammer
+			if (c == '}') {
+				zustand = Z_Trenner;
+			}
 			return false;
-		case Z_Trenner: // Noch kein neues Terminal begonnen
+		case Z_Trenner: // zwischen zwei Wörtern
 			if (isZiffer(c)) {
 				zustand = Z_Zahl;
 				terminalstring = "" + c;
-			} else if (c=='{') {
+				startZeile = aktzeile;
+				startSpalte = pos - zeilenpos;
+			} else if (c == '{') {
 				zustand = Z_Kommentar;
 			} else if (isAlpha(c)) {
 				zustand = Z_Alpha;
 				terminalstring = "" + c;
+				startZeile = aktzeile;
+				startSpalte = pos - zeilenpos;
 			} else if (isTrenner(c)) {
+				// bleibt im Zustand
 			} else {
-				status = ERR_charunknown;
-				zustand = Z_Sink;
+				fehler(ERR_charunknown);
 			}
 			return false;
-		case Z_Zahl: // Zahl wird gelesen
+		case Z_Zahl: // eine Zahl wird gelesen
 			if (isZiffer(c)) {
 				terminalstring += c;
 			} else if (isAlpha(c)) {
-				status = ERR_char_in_number;
-				zustand = Z_Sink;
+				fehler(ERR_char_in_number);
 			} else if (isTrenner(c)) {
 				zustand = Z_Trenner;
-				tokentyp = Z_Zahl;
 				return true; // Token bilden
 			} else {
-				status = ERR_charunknown;
-				zustand = Z_Sink;
+				fehler(ERR_charunknown);
 			}
 			return false;
-		case Z_Alpha: // Wort wird gelesen
+		case Z_Alpha: // ein Wort wird gelesen
 			if (isAlpha(c)) {
 				terminalstring += c;
 			} else if (isZiffer(c)) {
-				status = ERR_number_in_word;
-				zustand = Z_Sink;
+				fehler(ERR_number_in_word);
 			} else if (isTrenner(c)) {
 				zustand = Z_Trenner;
-				tokentyp = Z_Alpha;
-				return true; // Token muss gebildet werden
+				return true; // Token bilden
 			} else {
-				status = ERR_charunknown;
-				zustand = Z_Sink;
+				fehler(ERR_charunknown);
 			}
 			return false;
-		default: // Unbekannter Zustand -> Fehlersenke
+		default: // Fehlersenke und unbekannte Zustände
 			zustand = Z_Sink;
 		}
 		return false;
 	}
+
+	/**
+	 * Macht aus einem fertig gelesenen Wort oder einer fertig gelesenen Zahl ein
+	 * Token (fertig). Gibt null zurück und setzt status, wenn kein Token entstehen
+	 * kann (z. B. bei einem unbekannten Wort).
+	 *
+	 * @param text das Wort bzw. die Zahl (mindestens ein Zeichen)
+	 */
+	private static Token erzeugeToken(String text) {
+		fehlerwort = text;
+		fehlerzeile = aktzeile;
+		boolean istZahl = isZiffer(text.charAt(0));
+		if (nextTokenBez) { // nach "Anweisung" folgt der Name der neuen Anweisung
+			nextTokenBez = false;
+			if (istZahl || Hilfsfunktionen.isStringInArray(text, moves)
+					|| Hilfsfunktionen.isStringInArray(text, conditions)
+					|| Hilfsfunktionen.isStringInArray(text, control)) {
+				status = ERR_bezUnzulaessig;
+				return null;
+			}
+			bezeichner.append(text);
+			return new Token(Token.T_Bez, text);
+		}
+		if (istZahl) {
+			try {
+				return new Token(Token.T_Zahl, text);
+			} catch (NumberFormatException e) {
+				status = ERR_zahl_zu_gross;
+				return null;
+			}
+		}
+		if (Hilfsfunktionen.isStringInArray(text, moves)) {
+			return new Token(Token.T_Move, text);
+		}
+		if (Hilfsfunktionen.isStringInArray(text, conditions)) {
+			return new Token(Token.T_Cond, text);
+		}
+		if (text.equals("Anweisung")) { // dieses Steuerwort kündigt einen Namen an
+			nextTokenBez = true;
+			return new Token(Token.T_Cont, text);
+		}
+		if (Hilfsfunktionen.isStringInArray(text, control)) {
+			return new Token(Token.T_Cont, text);
+		}
+		bezeichner.toFirst(); // ein bereits definierter Name einer eigenen Anweisung?
+		while (bezeichner.hasAccess()) {
+			if (text.equals(bezeichner.getContent())) {
+				return new Token(Token.T_Bez, text);
+			}
+			bezeichner.next();
+		}
+		status = ERR_terminal_unknown;
+		return null;
+	}
+
+	// ===== Hilfsmethoden (fertig) =========================================
 
 	public static boolean isZiffer(char c) {
 		return (c >= '0' && c <= '9');
 	}
 
 	public static boolean isAlpha(char c) {
-		// ö ist erlaubt - puh
-		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z' || c == 'ö');
+		// ö ist erlaubt, denn es kommt in "MarkeLöschen" vor
+		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == 'ö';
 	}
 
 	public static boolean isTrenner(char c) {
@@ -212,35 +264,41 @@ public class Lexer {
 
 	public static void debug(String text) {
 		if (debug) {
-			System.out.println("L: "+text);
+			System.out.println("L: " + text);
 		}
 	}
 
+	/**
+	 * Fehlertext für die Statuszeile der Oberfläche (fertig).
+	 */
 	public static String getStatusText() {
-		String fehlertext = "";
 		switch (status) {
 		case STAT_GOOD:
-			fehlertext = "Lexing Fehlerfrei";
-			break;
-		case ERR_char_in_number:
-			fehlertext = "Lexing fehlerhaft: Zeichen in einer Zahl";
-			break;
+			return "Lexing fehlerfrei";
 		case ERR_charunknown:
-			fehlertext = "Lexing fehlerhaft: Unbekanntes Zeichen";
-			break;
+			return "Lexing fehlerhaft: Unbekanntes Zeichen (Zeile " + aktzeile + ", Spalte " + (pos - zeilenpos) + ")";
 		case ERR_number_in_word:
-			fehlertext = "Lexing fehlerhaft: Ziffer innerhalb eines Wortes";
-			break;
+			return "Lexing fehlerhaft: Ziffer innerhalb eines Wortes (Zeile " + aktzeile + ", Spalte "
+					+ (pos - zeilenpos) + ")";
+		case ERR_char_in_number:
+			return "Lexing fehlerhaft: Buchstabe innerhalb einer Zahl (Zeile " + aktzeile + ", Spalte "
+					+ (pos - zeilenpos) + ")";
 		case ERR_terminal_unknown:
-			fehlertext = "Lexing fehlerhaft: Unbekanntes Schluesselwort (Terminal): " + terminalstring;
-			break;
+			return "Lexing fehlerhaft: Unbekanntes Wort '" + fehlerwort + "' (Zeile " + fehlerzeile + ")";
+		case ERR_bezUnzulaessig:
+			return "Lexing fehlerhaft: '" + fehlerwort + "' ist als Name einer eigenen Anweisung nicht erlaubt (Zeile "
+					+ fehlerzeile + ")";
+		case ERR_zahl_zu_gross:
+			return "Lexing fehlerhaft: Die Zahl '" + fehlerwort + "' ist zu groß (Zeile " + fehlerzeile + ")";
+		default:
+			return "Lexing fehlerhaft: unbekannter Fehlercode " + status;
 		}
-		if (status != STAT_GOOD) {
-			fehlertext += "Zeile: " + aktzeile + " Pos: " + (pos - zeilenpos);
-		}
-		return fehlertext;
 	}
 
+	/**
+	 * @return 0, wenn alles in Ordnung ist, sonst ein negativer Fehlercode (wird
+	 *         von der Oberfläche abgefragt)
+	 */
 	public static int getStatus() {
 		return status;
 	}

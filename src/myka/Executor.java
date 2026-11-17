@@ -22,15 +22,20 @@ public class Executor extends Thread {
 		//System.out.println("Starting thread");
 		if (!running) {
 			running = true;
-			Interpreter.execute(tokenliste);
 			MyKaController c = MyKaController.getController();
-			if (Interpreter.getFail()) {
-				c.writeStatus("Executing...Failed!!!");
-			} else {
-				c.writeStatus("Executing...Done!");
+			boolean ok = false;
+			try {
+				Interpreter.execute(tokenliste);
+				ok = !Interpreter.getFail();
+			} catch (RuntimeException e) { // z.B. Fehler im (Schüler-)Interpreter
+				e.printStackTrace();
+			} finally {
+				// Oberfläche immer wieder freigeben, auch nach einer Exception
+				c.writeStatus(ok ? "Executing...Done!" : "Executing...Failed!!!");
+				c.enableInput();
+				running = false;
+				s = null;
 			}
-			c.enableInput();
-			running = false;
 		}
 		s = null;
 	}

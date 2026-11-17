@@ -1,296 +1,157 @@
 package myka;
 
 /**
- * Sprache erkennen, die in der Tokenliste genutzt wird
- * Start: Programm
- * Programm -> leer | Anweisung Programm | eAnweisung eigAnweisung Programm
- * Anweisung -> befehl | wiederhole Wiederholung | wenn Bedingung | {Bez} 
- * Wiederholung -> zahl mal Programm endewiederhole | solange ...
- * Bedingung -> {Bedingung} dann Programm endewenn | {Bedingung} dann Programm sonst Programm endewenn
- * eigAnweisung -> {Bez} Programm endeAnweisung
- * Das ist nur mit einem Kellerspeicher moeglich
- * Kelleralphabet # , w - while Schleife, i - if, s - sonstZweig von if, a - eigeneanweisung
- * @author peter
+ * Der Parser der Sprache MyKa.
+ * Er prüft, ob die Tokenfolge den Regeln der Sprache entspricht. Er ist als
+ * Kellerautomat (Zustand + Keller) aufgebaut; die Zustandsübergänge werden mit
+ * switch-case umgesetzt.
  *
+ * Alles, was mit "TODO" markiert ist, ergänzt du. Der Rest ist fertig.
+ *
+ * Diese Klasse ist statisch: Es wird nie ein Parser-Objekt erzeugt.
  */
 public class Parser {
-	private static String fehlertext="";
-	private static Stack<Character> keller = new Stack<Character>();
+	private static String fehlertext = "";
 	private static final boolean debug = false;
-	private static int curpos = 0;
-	private static Token[] tokenArray = null;
 
-	private Parser() {
-		// Vom Parser wird kein Objekt erzeugt - statische Klasse
-	}
-	
-	public static boolean parse(Token[] tokenliste) {
-		fehlertext="Success!!";
-		keller = new Stack<Character>();
-		keller.push('#'); //leerer Kellerspeicher
-		curpos = 0;
-		tokenArray = tokenliste;
-		if (tokenArray==null) return true;
-		return pruefeProgramm();
+	// Kelleralphabet:
+	//   #  Kellerboden (leerer Keller)
+	//   w  eine Wiederholung ist offen   (wiederhole ... endewiederhole)
+	//   i  ein wenn-Block ist offen, noch kein sonst gesehen
+	//   s  ein wenn-Block ist offen, der sonst-Teil läuft
+	//   a  eine Anweisungsdefinition ist offen (Anweisung ... endeAnweisung)
+	//
+	// Zustände:
+	private static final int Z_Block = 0; // normale Ebene: Befehle, Aufrufe, Beginn/Ende von Strukturen
+	private static final int Z_NachWiederhole = 1; // nach "wiederhole": Zahl oder "solange" erwartet
+	private static final int Z_NachZahl = 2; // nach "wiederhole <Zahl>": "mal" erwartet
+	private static final int Z_NachSolange = 3; // nach "solange": Bedingung erwartet
+	private static final int Z_NachWenn = 4; // nach "wenn": Bedingung erwartet
+	private static final int Z_NachWennBed = 5; // nach "wenn <Bedingung>": "dann" erwartet
+	private static final int Z_NachAnweisung = 6; // nach "Anweisung": Bezeichner erwartet
+	private static final int Z_Sink = 7; // Fehlersenke
+
+	private Parser() { // es wird kein Parser-Objekt erzeugt - statische Klasse
 	}
 
-	private static boolean pruefeProgramm() {
-		if (hasAccess()) {
-			Token akt = tokenArray[curpos];
-			debug("In pruefe Programm mit Token:"+akt);
-			if (akt.getTyp()==Token.T_Move && keller.top()=='#') {
-				curpos++;
-				return pruefeProgramm();
-			} else if (akt.getTyp()==Token.T_Bez && keller.top()=='#') {
-				curpos++;
-				return pruefeProgramm();
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wiederhole") && keller.top()=='#') {
-				//Wiederholung begonnen
-				curpos++;
-				keller.push('w'); //wiederholung eintragen
-				return pruefeOpenWhile();
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wenn") && keller.top()=='#') {
-				//WennDann begonnen
-				curpos++;
-				keller.push('i'); //if eintragen
-				return pruefeOpenIf();
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("Anweisung") && keller.top()=='#') {
-				//Anweisung wird definiert
-				curpos++;
-				keller.push('a'); //Anweisung eintragen
-				return pruefeOpenAnweisung();
-			} else {
-				fehlertext = "Unerwartetes Token: "+akt;
-				return false;
+	/**
+	 * Prüft die Tokenfolge.
+	 *
+	 * @param tokens die Tokenfolge (vom Controller als Array übergeben)
+	 * @return true, wenn das Programm den Regeln der Sprache entspricht
+	 */
+	public static boolean parse(Token[] tokens) {
+		// WICHTIG: Bei Erfolg muss der Fehlertext genau "Success!!" lauten.
+		// Die Oberfläche prüft diesen Text und nicht den Rückgabewert!
+		fehlertext = "Success!!";
+		if (tokens == null) {
+			return true;
+		}
+		Stack<Character> keller = new Stack<Character>();
+		keller.push('#');
+		int zustand = Z_Block;
+
+		for (int pos = 0; pos < tokens.length && zustand != Z_Sink; pos++) {
+			Token t = tokens[pos];
+			debug("Zustand " + zustand + ", Keller oben " + keller.top() + ", Token " + t);
+			switch (zustand) {
+			case Z_Block:
+				if (t.getTyp() == Token.T_Move || t.getTyp() == Token.T_Bez) {
+					// Befehl oder Aufruf einer eigenen Anweisung: bleibt im Zustand
+				} else if (ist(t, "wiederhole")) {
+					keller.push('w');
+					zustand = Z_NachWiederhole;
+				} else if (ist(t, "wenn")) {
+					keller.push('i');
+					zustand = Z_NachWenn;
+				} else if (ist(t, "Anweisung") && keller.top() == '#') { // nur auf oberster Ebene
+					keller.push('a');
+					zustand = Z_NachAnweisung;
+				} else if (ist(t, "endewiederhole") && keller.top() == 'w') {
+					keller.pop();
+				} else if (ist(t, "sonst") && keller.top() == 'i') {
+					keller.pop();
+					keller.push('s');
+				} else if (ist(t, "endewenn") && (keller.top() == 'i' || keller.top() == 's')) {
+					keller.pop();
+				} else if (ist(t, "endeAnweisung") && keller.top() == 'a') {
+					keller.pop();
+				} else {
+					zustand = fehler("Unerwartetes Token", t);
+				}
+				break;
+			case Z_NachWiederhole:
+				if (t.getTyp() == Token.T_Zahl) {
+					zustand = Z_NachZahl;
+				} else if (ist(t, "solange")) {
+					zustand = Z_NachSolange;
+				} else {
+					zustand = fehler("Nach wiederhole fehlt eine Zahl oder solange", t);
+				}
+				break;
+			case Z_NachZahl:
+				zustand = ist(t, "mal") ? Z_Block : fehler("wiederhole <Zahl> ohne mal", t);
+				break;
+			case Z_NachSolange:
+				zustand = (t.getTyp() == Token.T_Cond) ? Z_Block : fehler("wiederhole solange ohne Bedingung", t);
+				break;
+			case Z_NachWenn:
+				zustand = (t.getTyp() == Token.T_Cond) ? Z_NachWennBed : fehler("wenn ohne Bedingung", t);
+				break;
+			case Z_NachWennBed:
+				zustand = ist(t, "dann") ? Z_Block : fehler("wenn <Bedingung> ohne dann", t);
+				break;
+			case Z_NachAnweisung:
+				zustand = (t.getTyp() == Token.T_Bez) ? Z_Block : fehler("Anweisung ohne Bezeichner", t);
+				break;
+			default:
+				zustand = Z_Sink;
 			}
 		}
-		return true; //leeres (Rest-)Programm
-	}
 
-	private static boolean pruefeOpenAnweisung() {
-		if (!hasAccess()) return eofWhileParsing(); //Eigentlich ueberfluessig
-		Token akt = tokenArray[curpos];
-		debug("In pruefe Anwisung mit Token:"+akt);
-		if (akt.getTyp()==Token.T_Bez) {
-			curpos++;
-			if (!hasAccess()) return eofWhileParsing();
-			boolean result = pruefeInAnweisung();
-			return result;
-		} else {
-			fehlertext = "Anweisung erstellt aber kein Bezeichner genannt: "+akt;
-			return false;
-		}		
-	}
-
-	private static boolean pruefeInAnweisung() {
-		if (keller.top()=='#') { //wieder auf Ausgangsebene a beendet
-			return pruefeProgramm();
-		} //Andere Optionen gibt es nicht, da Anweisungen nicht innerhalb von if oder while deklariert werden
-		if (hasAccess()) {
-			Token akt = tokenArray[curpos];
-			debug("In pruefe InAnweisung mit Token:"+akt);
-			if (akt.getTyp()==Token.T_Move && keller.top()=='a') {
-				curpos++;
-				return pruefeInAnweisung();
-			} else if (akt.getTyp()==Token.T_Bez && keller.top()=='a') {
-				curpos++;
-				return pruefeInAnweisung();
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("endeAnweisung") && keller.top()=='a') {
-				//Anweisungsbeschreibung beendet
-				keller.pop(); //Anweisung aus Keller entfernen
-				curpos++;
-				return pruefeInAnweisung();
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wenn")) {
-				//WennDann begonnen
-				keller.push('i'); //if eintragen
-				curpos++;
-				return pruefeOpenIf();
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wiederhole")) {
-				//Neue Schleife begonnen
-				keller.push('w'); //schleife eintragen
-				curpos++;
-				return pruefeOpenWhile();
-			} else {
-				fehlertext = "Unerwartetes Token: "+akt;
-				return false;
-			}
-		}
-		fehlertext = "Programm endet in Anweisungserstellung";
-		return false; 
-	}
-	
-	private static boolean pruefeOpenWhile() {
-		if (!hasAccess()) return eofWhileParsing(); //Eigentlich ueberfluessig
-		Token akt = tokenArray[curpos];
-		debug("In pruefe OpenWhile mit Token:"+akt);
-		if (akt.getTyp()==Token.T_Zahl) {
-			//Wiederhole n mal schleife
-			curpos++;
-			if (!hasAccess()) return eofWhileParsing();
-			akt = tokenArray[curpos];
-			if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("mal")) {
-				curpos++;
-				if (!hasAccess()) return eofWhileParsing();
-				//hier startet die eigentliche Pruefung auf Input
-				boolean result = pruefeInWhile();
-				return result;
-			}
-			fehlertext = "while ohne Wort mal";
-			return false;
-		} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("solange")) { 
-			//Wiederhole solange Schleife
-			curpos++;
-			if (!hasAccess()) return eofWhileParsing();
-			akt = tokenArray[curpos];
-			if (akt.getTyp()==Token.T_Cond) {
-				curpos++;
-				if (!hasAccess()) return eofWhileParsing();
-				//hier startet die eigentliche Pruefung auf Input
-				return pruefeInWhile();
-			}
-			fehlertext = "wiederhole solange ohne Bedingung";
-			return false;
-		
-		} else {
-			fehlertext = "While schleife nicht richtig erstellt: "+akt;
+		if (zustand == Z_Sink) {
 			return false;
 		}
-	}
-		
-	private static boolean pruefeInWhile() {
-		if (keller.top()=='#') {
-			return pruefeProgramm();
-		}
-		if (keller.top()=='a') {
-			return pruefeInAnweisung();
-		}
-		if (keller.top()=='i' || keller.top()=='s') {
-			return pruefeInIf();
-		}	
-		if (hasAccess()) {
-			Token akt = tokenArray[curpos];
-			debug("In pruefe InWhile mit Token:"+akt);
-			if ((akt.getTyp()==Token.T_Move || akt.getTyp()==Token.T_Bez) && keller.top()=='w') {
-				curpos++;
-				return pruefeInWhile();
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("endewiederhole") && keller.top()=='w') {
-				//eine Wiederholung beendet
-				keller.pop(); //wiederholung aus Keller entfernen
-				curpos++;
-				return pruefeInWhile();
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wenn")) {
-				//WennDann begonnen
-				keller.push('i'); //if eintragen
-				curpos++;
-				return pruefeOpenIf();
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wiederhole")) {
-				//Neue Schleife begonnen
-				keller.push('w'); //schleife eintragen
-				curpos++;
-				return pruefeOpenWhile();
-			} else {
-				fehlertext = "Unerwartetes Token: "+akt;
-				return false;
-			}
-		}
-		fehlertext = fehlertextMitToken("Programm endet in Schleife");
-		return false; 
-	}
-	private static boolean pruefeOpenIf() {
-		if (!hasAccess()) return eofWhileParsing(); //Eigentlich ueberfluessig
-		Token akt = tokenArray[curpos];
-		debug("In pruefe OpenIf mit Token:"+akt);
-		if (akt.getTyp()==Token.T_Cond) {
-			//in Bedingung
-			curpos++;
-			if (!hasAccess()) return eofWhileParsing();
-			akt = tokenArray[curpos];
-			if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("dann")) {
-				curpos++;
-				if (!hasAccess()) return eofWhileParsing();
-				return pruefeInIf();
-			}
-			fehlertext = fehlertextMitToken("wenn ohne dann!");
-			return false;
-		} else {
-			fehlertext = fehlertextMitToken("wenn-Verzeweigung nicht richtig erstellt");
+		// Alle Token sind gelesen: darf der Automat akzeptieren?
+		if (zustand != Z_Block) {
+			fehlertext = "Programm endet mitten in einer Anweisung (Reached End Of File while parsing)";
 			return false;
 		}
-	}
-		
-	private static boolean pruefeInIf() {
-		if (keller.top()=='#') {
-			return pruefeProgramm();
+		switch (keller.top()) {
+		case 'w':
+			fehlertext = "Programm endet in einer Schleife (endewiederhole fehlt)";
+			return false;
+		case 'i':
+		case 's':
+			fehlertext = "Programm endet in einem wenn-Block (endewenn fehlt)";
+			return false;
+		case 'a':
+			fehlertext = "Programm endet in einer Anweisungsdefinition (endeAnweisung fehlt)";
+			return false;
+		default:
+			return true; // Keller leer (nur #)
 		}
-		if (keller.top()=='a') {
-			return pruefeInAnweisung();
-		}
-		if (keller.top()=='w') {
-			//return false;
-			return pruefeInWhile();
-		}	
-		if (hasAccess()) {
-			Token akt = tokenArray[curpos];
-			debug("In pruefe InIf mit Token:"+akt);
-			if ((akt.getTyp()==Token.T_Move || akt.getTyp()==Token.T_Bez)) {
-				curpos++;
-				return pruefeInIf();
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("sonst") && keller.top()=='i') {
-				//eine Bedingungsbearbeitung beendet
-				keller.pop();
-				keller.push('s');
-				curpos++;
-				return pruefeInIf();
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("endewenn")) {
-				//eine Bedingung beendet
-				keller.pop(); //Bedingung aus Keller entfernen
-				curpos++;
-				return pruefeInIf();
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wenn")) {
-				//WennDann begonnen
-				keller.push('i'); //if eintragen
-				curpos++;
-				return pruefeOpenIf();
-			} else if (akt.getTyp()==Token.T_Cont && akt.getWert().equals("wiederhole")) {
-				//Wiederhole begonnen
-				keller.push('w'); //wiederhole eintragen
-				curpos++;
-				return pruefeOpenWhile();
-			} else {
-				fehlertext = "Unerwartetes Token: "+akt;
-				return false;
-			}
-		}
-		fehlertext = "Programm endet in If-Anweisung";
-		return false; 
 	}
 
-
-	private static boolean eofWhileParsing() {
-		fehlertext = "Reached End Of File while parsing";
-		return false;
+	/** setzt den Fehlertext und liefert den Folgezustand Fehlersenke */
+	private static int fehler(String text, Token t) {
+		fehlertext = text + ": " + t;
+		return Z_Sink;
 	}
 
+	/** Fertig: Ist t ein Steuerwort mit genau diesem Wert? */
+	private static boolean ist(Token t, String wert) {
+		return t.getTyp() == Token.T_Cont && t.getWert().equals(wert);
+	}
+
+	/** @return der Fehlertext; bei Erfolg genau "Success!!" (wird von der Oberfläche angezeigt) */
 	public static String getFehlerText() {
 		return fehlertext;
 	}
-	
+
 	private static void debug(String text) {
-		if (debug) System.out.println("P:"+text);
-	}
-	
-	private static boolean hasAccess() {
-		return curpos < tokenArray.length;
-	}
-	
-	private static String fehlertextMitToken(String text) {
-		if (hasAccess()) {
-			return text+": "+tokenArray[curpos];
-		} else {
-			return text;
+		if (debug) {
+			System.out.println("P:" + text);
 		}
 	}
-	
-	
-
 }
